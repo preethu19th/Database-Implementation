@@ -7,6 +7,10 @@
 #include <string.h>
 #include <iostream>
 #include <stdlib.h>
+// adding the following header to find lseek and other file operations
+// as hinted on the following link
+// http://man7.org/linux/man-pages/man2/lseek.2.html
+#include <unistd.h>
 
 
 
