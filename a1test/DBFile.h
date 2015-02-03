@@ -7,17 +7,19 @@
 #include "File.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
+#include <string>
 
 typedef enum {heap, sorted, tree} fType;
 
-// stub DBFile header..replace it with your own DBFile.h 
-
 class DBFile {
-
 private:
+	string filePath;
+	off_t whichPage;
+	bool pageDirty;
 	fType fileType;
 	Page currPage;
 	File file;
+	int WriteMetaFile ();
 
 public:
 	DBFile (); 
@@ -32,6 +34,9 @@ public:
 	void Add (Record &addme);
 	int GetNext (Record &fetchme);
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
+
+	bool CheckFileType (fType checkFileType);
+	bool VerifyInternalVals (fType checkFT, int checkWP);
 
 };
 #endif
