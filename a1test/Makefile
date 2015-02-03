@@ -91,6 +91,7 @@ lex.yy.o: Lexer.l
 	gcc  -c lex.yy.c
 
 clean: 
+	rm -rf test_data
 	rm -f $(TESTS) gtest.a gtest_main.a main
 	rm -f *.o
 	rm -f *.out
@@ -109,5 +110,6 @@ dbfile_unittest.o : DBFile_unittest.cc \
                      DBFile.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c DBFile_unittest.cc -o dbfile_unittest.o
 
-dbfile_unittest : DBFile.o dbfile_unittest.o gtest_main.a
+dbfile_unittest : Schema.o Record.o File.o DBFile.o dbfile_unittest.o gtest_main.a
+	mkdir -p test_data
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
