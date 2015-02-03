@@ -14,19 +14,34 @@ DBFile::DBFile () {
 	whichPage = 0;
 }
 
-int DBFile::WriteMetaFile () {
+inline int DBFile::WriteMetaFile () {
 	string metaDataPath(filePath);
 	metaDataPath.append(".metadata");
 	ofstream metaFile(metaDataPath.c_str());
 
 	if (!metaFile.is_open()) {
-
 		cout << "ERROR: Cannot Open meta_data file!!\n";
 		return 0;
 	}
 
 	metaFile << fileType << endl;
 	metaFile << whichPage << endl;
+	metaFile.close();
+	return 1;
+}
+
+inline int DBFile::ReadMetaFile () {
+	string metaDataPath(filePath);
+	int intFileType;
+	metaDataPath.append(".metadata");
+	ifstream metaFile(metaDataPath.c_str());
+	if (!metaFile.is_open()) {
+		cerr << "ERROR: Cannot Open meta_data file!!\n";
+		return 0;
+	}
+	metaFile >> intFileType;
+	fileType = (fType) intFileType;
+	metaFile >> whichPage;
 	metaFile.close();
 	return 1;
 }
@@ -42,7 +57,6 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
 
 	file.Open (0, f_path);
 	return WriteMetaFile ();
-	
 }
 
 void DBFile::Load (Schema &f_schema, char *loadpath) {
@@ -52,27 +66,21 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
 
 	while (temp.SuckNextRecord (&f_schema, tableFile) == 1)
 		Add(temp);
+
+	fclose(tableFile);
 }
 
 int DBFile::Open (char *f_path) {
 	filePath = f_path;
-	string metaDataPath(filePath);
-	int intFileType;
-	metaDataPath.append(".metadata");
-	ifstream metaFile(metaDataPath.c_str());
-	if (!metaFile.is_open()) {
-		cerr << "ERROR: Cannot Open meta_data file!!\n";
-		return 0;
-	}
-	metaFile >> intFileType;
-	fileType = (fType) intFileType;
-	metaFile >> whichPage;
-	metaFile.close();
+	int readMeta = ReadMetaFile();
+	file.Open (1, f_path);
 	
 	return 1;
 }
 
 void DBFile::MoveFirst () {
+	whichPage = 0;
+	file.GetPage(&currPage,whichPage);
 }
 
 int DBFile::Close () {
@@ -83,7 +91,9 @@ int DBFile::Close () {
 		file.AddPage(&currPage, curLen+1);
 		currPage.EmptyItOut();
 	}
-	return file.Close();
+	whichPage = file.Close();
+
+	return WriteMetaFile ();
 }
 
 void DBFile::Add (Record &rec) {
@@ -99,6 +109,17 @@ void DBFile::Add (Record &rec) {
 }
 
 int DBFile::GetNext (Record &fetchme) {
+	if(currPage.GetFirst(&fetchme)){
+		return 1;
+	} else {
+		whichPage++;
+		if((whichPage + 1) >= file.GetLength()){
+			return 0;
+		} else {
+			file.GetPage(&currPage,whichPage);
+			return currPage.GetFirst(&fetchme);
+		}
+	}
 }
 
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
@@ -108,7 +129,6 @@ bool DBFile::CheckFileType (fType checkFileType) {
 	return checkFileType == fileType;
 }
 
-bool DBFile::VerifyInternalVals (fType checkFT, int checkWP) {
-	if(checkFT == fileType && checkWP == whichPage) return true;
-	return false;
+bool DBFile::CheckWhichPage(int checkWP) {
+	return checkWP == whichPage;
 }
