@@ -14,6 +14,11 @@ typedef enum {heap, sorted, tree} fType;
 
 class DBFile {
 
+private:
+	fType fileType;
+	Page currPage;
+	File file;
+
 public:
 	DBFile (); 
 
