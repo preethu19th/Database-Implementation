@@ -19,7 +19,8 @@ private:
 	fType fileType;
 	Page currPage;
 	File file;
-	int WriteMetaFile ();
+	inline int WriteMetaFile ();
+	inline int ReadMetaFile ();
 
 public:
 	DBFile (); 
@@ -36,7 +37,6 @@ public:
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
 
 	bool CheckFileType (fType checkFileType);
-	bool VerifyInternalVals (fType checkFT, int checkWP);
-
+	bool CheckWhichPage(int checkWP);
 };
 #endif

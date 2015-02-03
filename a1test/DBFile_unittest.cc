@@ -3,6 +3,7 @@
 #include "DBFile.h"
 #include "gtest/gtest.h"
 #include "Record.h"
+#include "Schema.h"
 #include <fstream>
 #include <string>
 
@@ -54,10 +55,12 @@ TEST(DBFile_Open, simple_open) {
 TEST(DBFile_Open, load_meta_data) {
 	char fileName[] = "test_data/test_open_meta";
 	DBFile tmp;
+
+	tmp.Create(fileName, heap, startUp);
+
 	string metaDataPath(fileName);
 	metaDataPath.append(".metadata");
 	ofstream metaFile(metaDataPath.c_str());
-
 	if (!metaFile.is_open()) {
 		cout << "ERROR: Cannot Open meta_data file!!\n";
 		EXPECT_EQ(false,true);
@@ -68,7 +71,8 @@ TEST(DBFile_Open, load_meta_data) {
 	metaFile.close();
 
 	tmp.Open(fileName);
-	EXPECT_EQ(true, tmp.VerifyInternalVals(heap,5));
+	EXPECT_EQ(true, tmp.CheckFileType(heap));
+	EXPECT_EQ(true, tmp.CheckWhichPage(5));
 }
 
 TEST(DBFile_GetNext, check_next) {
