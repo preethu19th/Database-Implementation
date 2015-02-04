@@ -33,17 +33,17 @@ GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
 # compiles fast and for ordinary users its source rarely changes.
 gtest-all.o : $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
-            $(GTEST_DIR)/src/gtest-all.cc -o gtest-all.o
+            $(GTEST_DIR)/src/gtest-all.cc -o bin/gtest-all.o
 
 gtest_main.o : $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXXFLAGS) -c \
-            $(GTEST_DIR)/src/gtest_main.cc -o gtest_main.o
+            $(GTEST_DIR)/src/gtest_main.cc -o bin/gtest_main.o
 
 gtest.a : gtest-all.o
-	$(AR) $(ARFLAGS) $@ $^
+	$(AR) $(ARFLAGS) $@ bin/$^
 
 gtest_main.a : gtest-all.o gtest_main.o
-	$(AR) $(ARFLAGS) $@ $^
+	$(AR) $(ARFLAGS) bin/$@ bin/gtest-all.o bin/gtest_main.o
 
 tag = -i
 
@@ -51,65 +51,68 @@ ifdef linux
 tag = -n
 endif
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
-	$(CC) -o test.out Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o -lfl
-	
-main: Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
-	$(CC) -o main Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o -lfl
-	
-test.o: test.cc
-	$(CC) -g -c test.cc
+makebin:
+	mkdir -p bin
 
-main.o: main.cc
-	$(CC) -g -c main.cc
+test.out: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
+	$(CC) -o  bin/test.out bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/test.o -lfl
 	
-Comparison.o: Comparison.cc
-	$(CC) -g -c Comparison.cc
+main: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
+	$(CC) -o  bin/main bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/y.tab.o bin/lex.yy.o bin/main.o -lfl
 	
-ComparisonEngine.o: ComparisonEngine.cc
-	$(CC) -g -c ComparisonEngine.cc
-	
-DBFile.o: DBFile.cc
-	$(CC) -g -c DBFile.cc
+test.o: source/test.cc
+	$(CC) -g -c source/test.cc -o bin/test.o
 
-File.o: File.cc
-	$(CC) -g -c File.cc
-
-Record.o: Record.cc
-	$(CC) -g -c Record.cc
-
-Schema.o: Schema.cc
-	$(CC) -g -c Schema.cc
+main.o: source/main.cc
+	$(CC) -g -c source/main.cc -o bin/main.o
 	
-y.tab.o: Parser.y
-	yacc -d Parser.y
+Comparison.o: source/Comparison.cc
+	$(CC) -g -c source/Comparison.cc -o bin/Comparison.o
+	
+ComparisonEngine.o: source/ComparisonEngine.cc
+	$(CC) -g -c source/ComparisonEngine.cc -o bin/ComparisonEngine.o
+	
+DBFile.o: source/DBFile.cc
+	$(CC) -g -c source/DBFile.cc -o bin/DBFile.o
+
+File.o: source/File.cc
+	$(CC) -g -c source/File.cc -o bin/File.o
+
+Record.o: source/Record.cc
+	$(CC) -g -c source/Record.cc -o bin/Record.o
+
+Schema.o: source/Schema.cc
+	$(CC) -g -c source/Schema.cc -o bin/Schema.o 
+	
+y.tab.o: source/Parser.y
+	yacc -d source/Parser.y
 	sed $(tag) y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
-	g++ -c y.tab.c
+	mv y.tab.c source/
+	g++ -c source/y.tab.c -o bin/y.tab.o
 
-lex.yy.o: Lexer.l
-	lex  Lexer.l
-	gcc  -c lex.yy.c
+lex.yy.o: source/Lexer.l
+	lex  source/Lexer.l
+	mv *.c *.h source
+	gcc  -c source/lex.yy.c -o bin/lex.yy.o
 
 clean: 
 	rm -rf test_data
-	rm -f $(TESTS) gtest.a gtest_main.a main
-	rm -f *.o
-	rm -f *.out
-	rm -f y.tab.c
-	rm -f lex.yy.c
-	rm -f y.tab.h
+	rm -rf bin/*
+	rm -f source/.tab.c
+	rm -f source/lex.yy.c
+	rm -f source/y.tab.h
+	
 
-unittest: $(TESTS)
-
+unittest: makebin $(TESTS)
 
 # Builds a sample test.  A test should link with either gtest.a or
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-dbfile_unittest.o : DBFile_unittest.cc \
-                     DBFile.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c DBFile_unittest.cc -o dbfile_unittest.o
+dbfile_unittest.o : source/DBFile_unittest.cc \
+                     source/DBFile.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c source/DBFile_unittest.cc -o bin/dbfile_unittest.o
 
-dbfile_unittest : Schema.o Record.o File.o DBFile.o dbfile_unittest.o gtest_main.a
+dbfile_unittest : makebin Schema.o Record.o File.o DBFile.o dbfile_unittest.o gtest_main.a
 	mkdir -p test_data
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Schema.o bin/Record.o bin/File.o bin/DBFile.o bin/dbfile_unittest.o bin/gtest_main.a -o bin/$@
