@@ -54,13 +54,13 @@ endif
 makebin:
 	mkdir -p bin
 
-test.out: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.o
+test.out: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.a
 	$(CC) -o  bin/test.out bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/test.o -lfl
 	
 main: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o  bin/main bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/y.tab.o bin/lex.yy.o bin/main.o -lfl
 	
-test.o: source/test.cc
+test.a: source/test.cc
 	$(CC) -g -c source/test.cc -o bin/test.o
 
 main.o: source/main.cc
@@ -103,7 +103,7 @@ clean:
 	rm -f source/y.tab.h
 	
 
-unittest: makebin $(TESTS)
+test: makebin $(TESTS)
 
 # Builds a sample test.  A test should link with either gtest.a or
 # gtest_main.a, depending on whether it defines its own main()

@@ -76,9 +76,38 @@ TEST(DBFile_Open, load_meta_data) {
 }
 
 TEST(DBFile_GetNext, check_next) {
+	char fileName[] = "test_data/test_get_next";
 	DBFile tmp;
 	Record tmpRecord;
-	EXPECT_EQ(true, tmp.GetNext(tmpRecord));
+
+	tmp.Create(fileName, heap, startUp);
+
+	EXPECT_EQ(false, tmp.GetNext(tmpRecord));
+	
+        FILE *tableFile = fopen ("static_test_data/li.tbl", "r");
+        Schema mySchema ("catalog", "lineitem");
+
+	int cnt = 0;
+
+	std::ifstream t("static_test_data/li_op.txt");
+	std::stringstream eop_buffer;
+	eop_buffer << t.rdbuf();
+	t.close();
+
+
+	std::stringstream aop_buffer;
+	std::streambuf *sbuf = std::cout.rdbuf();
+	std::cout.rdbuf(aop_buffer.rdbuf());
+        while (tmpRecord.SuckNextRecord (&mySchema, tableFile) == 1) {
+		cnt++;
+		tmpRecord.Print (&mySchema);
+	}
+
+	std::cout.rdbuf(sbuf);
+
+	EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
+
+	EXPECT_EQ(10,cnt);
 }
 
 TEST(DBFile_Close, empty_close) {
