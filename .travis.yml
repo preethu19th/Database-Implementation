@@ -1,0 +1,25 @@
+language: cpp
+
+compiler:
+  - gcc
+
+before_install:
+  - echo $LANG
+  - echo $LC_ALL
+
+script: make unittest && ./bin/unittest
+
+branches:
+  only:
+    - master
+    - preethu
+    - gpradeepufl
+
+env:
+  - RVM=2.0.0 LANG="en_US.UTF-8"
+
+os:
+  - linux
+  - osx
+
+osx_image: xcode61
