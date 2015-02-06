@@ -8,6 +8,7 @@
 #include "Defs.h"
 #include <iostream>
 #include <fstream>
+#include <string>
 
 DBFile::DBFile () {
 	whichPage = 0;
@@ -52,7 +53,15 @@ inline int DBFile::ReadMetaFile () {
 	return 1;
 }
 
+inline bool DBFile::InvalidFileName(char *f_path) {
+	return (f_path ==NULL || std::char_traits<char>::length(f_path) == 0);
+}
+
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
+	if(InvalidFileName(f_path)){
+		cout << "Error: Invalid file name!\n";
+		return 0;
+	}
 	filePath = f_path;
 	fileType = f_type;
 
@@ -79,7 +88,6 @@ int DBFile::Open (char *f_path) {
 	filePath = f_path;
 	if(ReadMetaFile()) {
 		file.Open (1, f_path);
-		cout <<"FILE LENGTH " << file.GetLength() <<endl;
 		return 1;
 	} else {
 		return 0;
@@ -87,9 +95,11 @@ int DBFile::Open (char *f_path) {
 }
 
 void DBFile::MoveFirst () {
-	whichPage = 0;
-	file.GetPage(&currPage,whichPage);
-	whichPage++;
+	if(whichPage != 0 ) {
+		whichPage = 0;
+		file.GetPage(&currPage,whichPage);
+		whichPage++;
+	}
 }
 
 int DBFile::Close () {
@@ -133,6 +143,12 @@ int DBFile::GetNext (Record &fetchme) {
 }
 
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
+	ComparisonEngine comp;
+	while(GetNext(fetchme))
+		if(comp.Compare (&fetchme, &literal, &cnf)) {
+			return 1;
+		}
+	return 0;
 }
 
 bool DBFile::CheckFileType (fType checkFileType) {

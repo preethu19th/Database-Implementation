@@ -45,6 +45,14 @@ class DBFileHeapTest : public ::testing::Test {
 		eop_buffer << lineItemsOp.rdbuf();
 		lineItemsOp.close();
   	}
+
+	inline static void ResetCoutBuffer() {
+		cout.rdbuf(sbuf);
+	}
+
+	inline static void SetCoutBuffer(stringstream *buf) {
+		cout.rdbuf(buf->rdbuf());
+	}
 };
 
 DBFile DBFileHeapTest::tmp;
@@ -60,6 +68,11 @@ char* DBFileHeapTest::fileName = "test_data/test_create";
 void* DBFileHeapTest::startUp = NULL;
 char* DBFileHeapTest::metaFileName = "test_data/test_create.metadata";
 
+TEST_F  (DBFileHeapTest, check_empty_filename) {
+	char *emptyFileName ="";
+	EXPECT_EQ(false,tmp.Create(emptyFileName, heap,startUp));
+	EXPECT_EQ(false,tmp.Create(NULL, heap,startUp));
+}
 
 TEST_F (DBFileHeapTest, create_heap_file) {
 	DeleteFiles ();
@@ -85,6 +98,7 @@ TEST_F (DBFileHeapTest, create_meta_file) {
 	metaFile.close();
 	EXPECT_EQ("0", fileType);
 	EXPECT_EQ("0", whichPage);
+	EXPECT_EQ(true, tmp.CheckFileLength(0));
 	EXPECT_EQ(true, FileExists(metaFileName));
 }
 
@@ -119,7 +133,27 @@ TEST_F (DBFileHeapTest, load_meta_data) {
 }
 
 TEST_F (DBFileHeapTest, check_add) {
+	DeleteFiles();
+	int cnt = 0;
+	Record aop;
+	stringstream aop_buffer;
+        FILE *tableFile = fopen (loadFileName, "r");
 
+	tmp.Create(fileName, heap, startUp);
+
+	SetCoutBuffer(&aop_buffer);
+        while (tmpRecord.SuckNextRecord (&mySchema, tableFile) == 1) {
+		cnt++;
+		tmp.Add(tmpRecord);
+		tmp.GetNext(aop);
+		aop.Print (&mySchema);
+	}
+	ResetCoutBuffer();
+	EXPECT_EQ(false, tmp.GetNext(tmpRecord));
+
+	fclose(tableFile);
+	EXPECT_EQ(10,cnt);
+	EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
 }
 
 TEST_F (DBFileHeapTest, check_empty_get_next) {
@@ -129,31 +163,39 @@ TEST_F (DBFileHeapTest, check_empty_get_next) {
 }
 
 
+TEST_F (DBFileHeapTest, check_move_first) {
+	DeleteFiles();
+	
+	tmp.Create(fileName, heap, startUp);
+	EXPECT_EQ(true, tmp.CheckWhichPage(0));
+	tmp.MoveFirst();
+	EXPECT_EQ(true, tmp.CheckWhichPage(0));
+	for(int i =0;i<10000;i++) {
+		tmp.Load(mySchema, loadFileName);
+	}
+	EXPECT_EQ(false, tmp.CheckWhichPage(0));
+	tmp.MoveFirst();
+	EXPECT_EQ(true, tmp.CheckWhichPage(1));
+	
+}
+
 TEST_F (DBFileHeapTest, check_load_and_get_next) {
+	int cnt = 0;
+	stringstream aop_buffer;
+
 	DeleteFiles ();
 	tmp.Create(fileName, heap, startUp);
 	tmp.Load(mySchema, loadFileName);
-	
-	int cnt = 0;
 
-	std::stringstream aop_buffer;
-	std::cout.rdbuf(aop_buffer.rdbuf());
-
+	SetCoutBuffer(&aop_buffer);
         while (tmp.GetNext(tmpRecord) == 1) {
 		cnt++;
 		tmpRecord.Print (&mySchema);
 	}
-
-	std::cout.rdbuf(sbuf);
+	ResetCoutBuffer();
 
 	EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
 	EXPECT_EQ(10,cnt);
-}
-
-TEST_F (DBFileHeapTest, check_get_next_w_filter) {
-}
-
-TEST_F (DBFileHeapTest, check_move_first) {
 }
 
 TEST_F (DBFileHeapTest, check_close) {

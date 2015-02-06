@@ -21,11 +21,12 @@ private:
 	inline int WriteMetaFile ();
 	inline int ReadMetaFile ();
 	int readRecsOffPage;
-	int totalRecords;
+	inline bool InvalidFileName(char *f_path);
 
 public:
 	DBFile (); 
 
+	int totalRecords;
 	int Create (char *fpath, fType file_type, void *startup);
 	int Open (char *fpath);
 	int Close ();

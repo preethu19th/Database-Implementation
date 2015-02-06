@@ -52,7 +52,11 @@ tag = -n
 endif
 
 makebin:
-	mkdir -p bin
+	mkdir -p bin test_data a1test
+
+autotest: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o autotest.a
+	$(CC) -o  bin/autotest bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/autotest.o -lfl
+	./bin/autotest
 
 test: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.a
 	$(CC) -o  bin/test bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/test.o -lfl
@@ -60,6 +64,10 @@ test: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o 
 main: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o  bin/main bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/y.tab.o bin/lex.yy.o bin/main.o -lfl
 	
+
+autotest.a: source/autotest.cc
+	$(CC) -g -c source/autotest.cc -o bin/autotest.o
+
 test.a: source/test.cc
 	$(CC) -g -c source/test.cc -o bin/test.o
 
@@ -96,6 +104,7 @@ lex.yy.o: source/Lexer.l
 	gcc  -c source/lex.yy.c -o bin/lex.yy.o
 
 clean: 
+	rm -rf a1test 
 	rm -rf test_data
 	rm -rf bin/*
 	rm -f source/.tab.c
@@ -113,6 +122,6 @@ dbfile_unittest.o : source/DBFile_unittest.cc \
                      source/DBFile.h $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/DBFile_unittest.cc -o bin/dbfile_unittest.o
 
-dbfile_unittest : makebin Schema.o Record.o File.o DBFile.o dbfile_unittest.o gtest_main.a
-	mkdir -p test_data
-	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Schema.o bin/Record.o bin/File.o bin/DBFile.o bin/dbfile_unittest.o bin/gtest_main.a -o bin/unittest
+dbfile_unittest : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o dbfile_unittest.o gtest_main.a
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/DBFile.o bin/dbfile_unittest.o bin/gtest_main.a -o bin/unittest
+	./bin/unittest
