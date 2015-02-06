@@ -7,7 +7,7 @@ before_install:
   - echo $LANG
   - echo $LC_ALL
 
-script: make unittest && make autotest
+script: make unittest
 
 branches:
   only:
