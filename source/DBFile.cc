@@ -10,8 +10,9 @@
 #include <fstream>
 
 DBFile::DBFile () {
-	pageDirty = false;
 	whichPage = 0;
+	readRecsOffPage = 0;
+	totalRecords = 0;
 }
 
 inline int DBFile::WriteMetaFile () {
@@ -26,6 +27,9 @@ inline int DBFile::WriteMetaFile () {
 
 	metaFile << fileType << endl;
 	metaFile << whichPage << endl;
+	metaFile << readRecsOffPage << endl;
+	metaFile << totalRecords << endl;
+	metaFile << file.GetLength () << endl;
 	metaFile.close();
 	return 1;
 }
@@ -42,6 +46,8 @@ inline int DBFile::ReadMetaFile () {
 	metaFile >> intFileType;
 	fileType = (fType) intFileType;
 	metaFile >> whichPage;
+	metaFile >> readRecsOffPage;
+	metaFile >> totalRecords;
 	metaFile.close();
 	return 1;
 }
@@ -62,7 +68,6 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
 void DBFile::Load (Schema &f_schema, char *loadpath) {
 	FILE *tableFile = fopen (loadpath, "r");
 	Record temp;
-	off_t curLen;
 
 	while (temp.SuckNextRecord (&f_schema, tableFile) == 1)
 		Add(temp);
@@ -72,51 +77,56 @@ void DBFile::Load (Schema &f_schema, char *loadpath) {
 
 int DBFile::Open (char *f_path) {
 	filePath = f_path;
-	int readMeta = ReadMetaFile();
-	file.Open (1, f_path);
-	
-	return 1;
+	if(ReadMetaFile()) {
+		file.Open (1, f_path);
+		cout <<"FILE LENGTH " << file.GetLength() <<endl;
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 void DBFile::MoveFirst () {
 	whichPage = 0;
 	file.GetPage(&currPage,whichPage);
+	whichPage++;
 }
 
 int DBFile::Close () {
 
-	if(pageDirty) {
+	if(totalRecords > 0) {
         	off_t curLen;
-		curLen = file.GetLength();
-		file.AddPage(&currPage, curLen+1);
+		file.AddPage(&currPage, whichPage);
+		whichPage++;
 		currPage.EmptyItOut();
 	}
-	whichPage = file.Close();
+
+	file.Close();
 
 	return WriteMetaFile ();
 }
 
 void DBFile::Add (Record &rec) {
-        off_t curLen;
-
+	totalRecords++;
 	if (!currPage.Append(&rec)) {
-		curLen = file.GetLength();
-		file.AddPage(&currPage, curLen+1);
+		file.AddPage(&currPage, whichPage);
+		whichPage++;
 		currPage.EmptyItOut();
 		currPage.Append(&rec);
 	}
-	pageDirty = true;
 }
 
 int DBFile::GetNext (Record &fetchme) {
 	if(currPage.GetFirst(&fetchme)){
+		readRecsOffPage++;
 		return 1;
 	} else {
-		whichPage++;
-		if((whichPage + 1) >= file.GetLength()){
+		if(whichPage + 1 >= file.GetLength ()){
 			return 0;
 		} else {
 			file.GetPage(&currPage,whichPage);
+			whichPage++;
+			readRecsOffPage = 0;
 			return currPage.GetFirst(&fetchme);
 		}
 	}
@@ -131,4 +141,8 @@ bool DBFile::CheckFileType (fType checkFileType) {
 
 bool DBFile::CheckWhichPage(int checkWP) {
 	return checkWP == whichPage;
+}
+
+bool DBFile::CheckFileLength(int checkFL) {
+	return checkFL == file.GetLength ();
 }

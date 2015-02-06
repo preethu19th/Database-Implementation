@@ -13,28 +13,23 @@ extern struct AndList *final;
 int main () {
 
 	// try to parse the CNF
-	cout << "Enter in your CNF: ";
-  	if (yyparse() != 0) {
-		cout << "Can't parse your CNF.\n";
-		exit (1);
-	}
 
 	// suck up the schema from the file
-	Schema lineitem ("catalog", "lineitem");
+	Schema customer ("catalog", "customer");
 
 	// grow the CNF expression from the parse tree 
 	CNF myComparison;
 	Record literal;
-	myComparison.GrowFromParseTree (final, &lineitem, literal);
+	myComparison.GrowFromParseTree (final, &customer, literal);
 	
 	// print out the comparison to the screen
 	myComparison.Print ();
 
 	// now open up the text file and start procesing it
-        FILE *tableFile = fopen ("/cise/tmp/dbi_sp15/DATA/10M/lineitem.tbl", "r");
+        FILE *tableFile = fopen ("/cise/tmp/dbi_sp15/DATA/10M/customer.tbl", "r");
 
         Record temp;
-        Schema mySchema ("catalog", "lineitem");
+        Schema mySchema ("catalog", "customer");
 
 	//char *bits = literal.GetBits ();
 	//cout << " numbytes in rec " << ((int *) bits)[0] << endl;
@@ -50,7 +45,6 @@ int main () {
 			cerr << counter << "\n";
 		}
 
-		if (comp.Compare (&temp, &literal, &myComparison))
                 	temp.Print (&mySchema);
 
         }

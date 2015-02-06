@@ -42,6 +42,9 @@ public:
 		}
 		cnf_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
 	}
+	~relation() {
+		delete rschema;
+	}
 };
 
 char *supplier = "supplier"; 
@@ -73,7 +76,14 @@ void setup (char *catalog_path, char *dbfile_dir, char *tpch_dir) {
 }
 
 void cleanup () {
-	delete s, p, ps, n, li, r, o, c;
+	delete s;
+	delete p;
+	delete ps;
+	delete n;
+	delete li;
+	delete r;
+	delete o;
+	delete c;
 }
 
 #endif

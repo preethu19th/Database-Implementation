@@ -7,10 +7,10 @@ To run the main program - this is used to run queries againt the tpch-dbgen pipe
 
 To run the test program - this is used to load, scan, and scan & filter heap DBFiles
 
-	make test.out
-	./bin/test.out
+	make test
+	./bin/test
 
 To run the unittests - this will run all the unittest written in googletest
 
-	make test
-	./bin/test
+	make unittest
+	./bin/unittest

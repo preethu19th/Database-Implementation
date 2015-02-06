@@ -7,26 +7,70 @@
 #include <fstream>
 #include <string>
 
-void *startUp = NULL;
+using namespace std;
 
-inline bool FileExists (const std::string& name) {
-	struct stat buffer;   
-	return (stat (name.c_str(), &buffer) == 0); 
-}
+class DBFileHeapTest : public ::testing::Test {
+	protected:
 
-TEST(DBFile_Create, create_heap_file) {
-	char fileName[] = "test_data/test_create";
-	DBFile tmp;
+	static DBFile tmp;
+	static char* fileName;
+	static void* startUp;
+	static char* metaFileName; 
+	static ifstream lineItemsOp;
+	static stringstream eop_buffer;
+	static Record tmpRecord;
+        static Schema mySchema;
+	static char *loadFileName;
+	static streambuf *sbuf;
 
+
+	inline bool FileExists (const std::string& name) {
+		struct stat buffer;   
+		return (stat (name.c_str(), &buffer) == 0); 
+	}
+	
+	inline bool DeleteFile () {
+		return ! remove (fileName);
+	}
+
+	inline bool DeleteMetaFile () {
+		return ! remove(metaFileName);
+	}
+
+	inline bool DeleteFiles() {
+		return DeleteFile () && DeleteMetaFile ();
+	}
+
+	static void SetUpTestCase() {
+		eop_buffer << lineItemsOp.rdbuf();
+		lineItemsOp.close();
+  	}
+};
+
+DBFile DBFileHeapTest::tmp;
+ifstream DBFileHeapTest::lineItemsOp("static_test_data/li_op.txt");
+stringstream DBFileHeapTest::eop_buffer;
+Record DBFileHeapTest::tmpRecord;
+Schema DBFileHeapTest::mySchema("catalog", "lineitem");
+char* DBFileHeapTest::loadFileName = "static_test_data/li.tbl";
+streambuf* DBFileHeapTest::sbuf = cout.rdbuf();
+
+
+char* DBFileHeapTest::fileName = "test_data/test_create";
+void* DBFileHeapTest::startUp = NULL;
+char* DBFileHeapTest::metaFileName = "test_data/test_create.metadata";
+
+
+TEST_F (DBFileHeapTest, create_heap_file) {
+	DeleteFiles ();
 	EXPECT_EQ(true, tmp.Create(fileName, heap, startUp));
 	EXPECT_EQ(true, FileExists(fileName));
+	EXPECT_EQ(true, FileExists(metaFileName));
 }
 
-TEST(DBFile_Create, check_meta_file) {
-	char fileName[] = "test_data/test_meta";
-	char metaFileName[] = "test_data/test_meta.metadata";
-	DBFile tmp;
+TEST_F (DBFileHeapTest, create_meta_file) {
 
+	DeleteFiles ();
 	tmp.Create(fileName, heap, startUp);
 
 	ifstream metaFile(metaFileName);
@@ -44,23 +88,22 @@ TEST(DBFile_Create, check_meta_file) {
 	EXPECT_EQ(true, FileExists(metaFileName));
 }
 
-TEST(DBFile_Open, simple_open) {
-	char fileName[] = "test_data/test_open";
-	DBFile tmp;
-	tmp.Create(fileName, heap, startUp);
-	EXPECT_EQ(true, tmp.Open(fileName));
-	EXPECT_EQ(true, tmp.CheckFileType(heap));
+TEST_F (DBFileHeapTest, open) {
+	DeleteFiles ();
+	DBFile tmp2;
+	EXPECT_EQ(true, tmp2.Create(fileName, heap, startUp));
+	EXPECT_EQ(true, tmp2.Open(fileName));
+	EXPECT_EQ(true, tmp2.CheckFileType(heap));
 }
 
-TEST(DBFile_Open, load_meta_data) {
-	char fileName[] = "test_data/test_open_meta";
-	DBFile tmp;
+TEST_F (DBFileHeapTest, load_meta_data) {
+	DBFile tmp3;
+	char *fileName1 = "test_data/test_meta_read";
+	char *metaFileName1 = "test_data/test_meta_read.metadata";
 
-	tmp.Create(fileName, heap, startUp);
+	tmp3.Create (fileName1, heap, startUp);
 
-	string metaDataPath(fileName);
-	metaDataPath.append(".metadata");
-	ofstream metaFile(metaDataPath.c_str());
+	ofstream metaFile(metaFileName1);
 	if (!metaFile.is_open()) {
 		cout << "ERROR: Cannot Open meta_data file!!\n";
 		EXPECT_EQ(false,true);
@@ -70,35 +113,33 @@ TEST(DBFile_Open, load_meta_data) {
 	metaFile << 5 << endl;
 	metaFile.close();
 
-	tmp.Open(fileName);
-	EXPECT_EQ(true, tmp.CheckFileType(heap));
-	EXPECT_EQ(true, tmp.CheckWhichPage(5));
+	tmp3.Open(fileName1);
+	EXPECT_EQ(true, tmp3.CheckFileType(heap));
+	EXPECT_EQ(true, tmp3.CheckWhichPage(5));
 }
 
-TEST(DBFile_GetNext, check_next) {
-	char fileName[] = "test_data/test_get_next";
-	DBFile tmp;
-	Record tmpRecord;
+TEST_F (DBFileHeapTest, check_add) {
 
+}
+
+TEST_F (DBFileHeapTest, check_empty_get_next) {
+	DeleteFiles ();
 	tmp.Create(fileName, heap, startUp);
-
 	EXPECT_EQ(false, tmp.GetNext(tmpRecord));
-	
-        FILE *tableFile = fopen ("static_test_data/li.tbl", "r");
-        Schema mySchema ("catalog", "lineitem");
+}
 
+
+TEST_F (DBFileHeapTest, check_load_and_get_next) {
+	DeleteFiles ();
+	tmp.Create(fileName, heap, startUp);
+	tmp.Load(mySchema, loadFileName);
+	
 	int cnt = 0;
 
-	std::ifstream t("static_test_data/li_op.txt");
-	std::stringstream eop_buffer;
-	eop_buffer << t.rdbuf();
-	t.close();
-
-
 	std::stringstream aop_buffer;
-	std::streambuf *sbuf = std::cout.rdbuf();
 	std::cout.rdbuf(aop_buffer.rdbuf());
-        while (tmpRecord.SuckNextRecord (&mySchema, tableFile) == 1) {
+
+        while (tmp.GetNext(tmpRecord) == 1) {
 		cnt++;
 		tmpRecord.Print (&mySchema);
 	}
@@ -106,10 +147,14 @@ TEST(DBFile_GetNext, check_next) {
 	std::cout.rdbuf(sbuf);
 
 	EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
-
 	EXPECT_EQ(10,cnt);
 }
 
-TEST(DBFile_Close, empty_close) {
-	
+TEST_F (DBFileHeapTest, check_get_next_w_filter) {
+}
+
+TEST_F (DBFileHeapTest, check_move_first) {
+}
+
+TEST_F (DBFileHeapTest, check_close) {
 }

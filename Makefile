@@ -54,8 +54,8 @@ endif
 makebin:
 	mkdir -p bin
 
-test.out: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.a
-	$(CC) -o  bin/test.out bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/test.o -lfl
+test: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.a
+	$(CC) -o  bin/test bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/test.o -lfl
 	
 main: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o  bin/main bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/y.tab.o bin/lex.yy.o bin/main.o -lfl
@@ -103,7 +103,7 @@ clean:
 	rm -f source/y.tab.h
 	
 
-test: makebin $(TESTS)
+unittest: makebin $(TESTS)
 
 # Builds a sample test.  A test should link with either gtest.a or
 # gtest_main.a, depending on whether it defines its own main()
@@ -111,8 +111,8 @@ test: makebin $(TESTS)
 
 dbfile_unittest.o : source/DBFile_unittest.cc \
                      source/DBFile.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c source/DBFile_unittest.cc -o bin/dbfile_unittest.o
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/DBFile_unittest.cc -o bin/dbfile_unittest.o
 
 dbfile_unittest : makebin Schema.o Record.o File.o DBFile.o dbfile_unittest.o gtest_main.a
 	mkdir -p test_data
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Schema.o bin/Record.o bin/File.o bin/DBFile.o bin/dbfile_unittest.o bin/gtest_main.a -o bin/test
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Schema.o bin/Record.o bin/File.o bin/DBFile.o bin/dbfile_unittest.o bin/gtest_main.a -o bin/unittest

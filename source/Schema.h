@@ -13,6 +13,10 @@ struct Attribute {
 
 	char *name;
 	Type myType;
+	~Attribute(){
+		delete  [] name;
+		name = NULL;
+	}
 };
 
 class OrderMaker;

@@ -15,12 +15,13 @@ class DBFile {
 private:
 	string filePath;
 	off_t whichPage;
-	bool pageDirty;
 	fType fileType;
 	Page currPage;
 	File file;
 	inline int WriteMetaFile ();
 	inline int ReadMetaFile ();
+	int readRecsOffPage;
+	int totalRecords;
 
 public:
 	DBFile (); 
@@ -38,5 +39,6 @@ public:
 
 	bool CheckFileType (fType checkFileType);
 	bool CheckWhichPage(int checkWP);
+	bool CheckFileLength(int checkFL);
 };
 #endif
