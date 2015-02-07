@@ -14,6 +14,7 @@ class DBFileHeapTest : public ::testing::Test {
 
 	static DBFile tmp;
 	static char* fileName;
+	static char* fileName2;
 	static void* startUp;
 	static char* metaFileName; 
 	static ifstream lineItemsOp;
@@ -65,6 +66,7 @@ streambuf* DBFileHeapTest::sbuf = cout.rdbuf();
 
 
 char* DBFileHeapTest::fileName = "test_data/test_create";
+char* DBFileHeapTest::fileName2 = "test_data/test_create2";
 void* DBFileHeapTest::startUp = NULL;
 char* DBFileHeapTest::metaFileName = "test_data/test_create.metadata";
 
@@ -198,5 +200,12 @@ TEST_F (DBFileHeapTest, check_load_and_get_next) {
 	EXPECT_EQ(10,cnt);
 }
 
-TEST_F (DBFileHeapTest, check_close) {
+TEST_F (DBFileHeapTest, check_close_return) {
+	DBFile tmp2;
+	DeleteFiles ();
+	tmp.Create(fileName, heap, startUp);
+	tmp.Load(mySchema, loadFileName);
+	tmp2.Create(fileName2, heap, startUp);
+	tmp2.Load(mySchema, loadFileName);
+	EXPECT_EQ(tmp.Close(), tmp2.Close());
 }
