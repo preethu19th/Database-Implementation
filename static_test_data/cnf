@@ -1,6 +1,6 @@
 (r_name='EUROPE')
-(r_name < 'middle east') AND (r_regionkey > 1)
-(n_regionkey = 3) AND (n_nationkey > 10) AND (n_name > 'japan')
+(r_name < 'MIDDLE EAST') AND (r_regionkey > 1)
+(n_regionkey = 3) AND (n_nationkey > 10) AND (n_name > 'JAPAN')
 (s_suppkey < 10)
 (s_nationkey = 18) AND (s_acctbal > 1000) AND (s_suppkey < 400)
 (c_nationkey = 23) AND (c_mktsegment = 'FURNITURE') AND (c_acctbal > 7023.99) AND (c_acctbal < 7110.83)

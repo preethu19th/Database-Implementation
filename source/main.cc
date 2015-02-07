@@ -26,7 +26,7 @@ int main () {
 	myComparison.Print ();
 
 	// now open up the text file and start procesing it
-        FILE *tableFile = fopen ("/cise/tmp/dbi_sp15/DATA/10M/customer.tbl", "r");
+        FILE *tableFile = fopen ("/cise/tmp/dbi_sp11/DATA/10M/customer.tbl", "r");
 
         Record temp;
         Schema mySchema ("catalog", "customer");
