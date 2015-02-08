@@ -9,7 +9,7 @@
 
 
 enum Target {Left, Right, Literal};
-enum CompOperator {LessThan, GreaterThan, Equals};
+enum CompOperator {LessThan, GreaterThan, Equals, LessEq, GreaterEq};
 enum Type {Int, Double, String};
 
 

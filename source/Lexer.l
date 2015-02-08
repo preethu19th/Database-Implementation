@@ -39,6 +39,10 @@ void yyerror(char*s);
 
 ")"    	        	return(')');
 
+">="			return('g');
+
+"<="			return('l');
+
 "<"    		      	return('<');
 
 ">"    		 	return('>');

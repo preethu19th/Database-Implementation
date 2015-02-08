@@ -4,6 +4,8 @@
 #define LESS_THAN 1
 #define GREATER_THAN 2
 #define EQUALS 3
+#define LESS_EQ 4
+#define GREATER_EQ 5
 
 // these are the types of operands that can appear in a CNF expression
 #define DOUBLE 1

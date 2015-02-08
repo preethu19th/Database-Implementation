@@ -240,6 +240,14 @@ int ComparisonEngine :: Run (Record *left, Record *literal, Comparison *c) {
 		// and check the operation type in order to actually do the comparison
 		switch (c->op) {
 				
+			case LessEq:
+			return (val1Int <= val2Int);
+			break;
+
+			case GreaterEq:
+			return (val1Int >= val2Int);
+			break;
+
 			case LessThan:
 			return (val1Int < val2Int);
 			break;
@@ -262,6 +270,14 @@ int ComparisonEngine :: Run (Record *left, Record *literal, Comparison *c) {
 		// and check the operation type in order to actually do the comparison
 		switch (c->op) {
 						
+			case LessEq:
+			return (val1Double <= val2Double);
+			break;
+
+			case GreaterEq:
+			return (val1Double >= val2Double);
+			break;
+
 			case LessThan:
 			return (val1Double < val2Double);
 			break;
@@ -283,6 +299,14 @@ int ComparisonEngine :: Run (Record *left, Record *literal, Comparison *c) {
 		tempResult = strcmp (val1, val2);
 		switch (c->op) {
 						
+			case LessEq:
+			return tempResult <= 0;
+			break;
+
+			case GreaterEq:
+			return tempResult >= 0;
+			break;
+
 			case LessThan:
 			return tempResult < 0;
 			break;
@@ -357,6 +381,14 @@ int ComparisonEngine :: Run (Record *left, Record *right, Record *literal, Compa
 		// and check the operation type in order to actually do the comparison
 		switch (c->op) {
 				
+			case LessEq:
+			return (val1Int <= val2Int);
+			break;
+
+			case GreaterEq:
+			return (val1Int >= val2Int);
+			break;
+
 			case LessThan:
 			return (val1Int < val2Int);
 			break;
@@ -379,6 +411,14 @@ int ComparisonEngine :: Run (Record *left, Record *right, Record *literal, Compa
 		// and check the operation type in order to actually do the comparison
 		switch (c->op) {
 						
+			case LessEq:
+			return (val1Double <= val2Double);
+			break;
+
+			case GreaterEq:
+			return (val1Double >= val2Double);
+			break;
+
 			case LessThan:
 			return (val1Double < val2Double);
 			break;
@@ -400,6 +440,14 @@ int ComparisonEngine :: Run (Record *left, Record *right, Record *literal, Compa
 		tempResult = strcmp (val1, val2);
 		switch (c->op) {
 						
+			case LessEq:
+			return tempResult <= 0;
+			break;
+
+			case GreaterEq:
+			return tempResult >= 0;
+			break;
+
 			case LessThan:
 			return tempResult < 0;
 			break;

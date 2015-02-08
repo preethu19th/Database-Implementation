@@ -57,7 +57,6 @@ class AutoTest : public ::testing::Test {
 			rel = rel_ptr [findx - 1];
 			test2();
 		}
-
   	}
 	static void TearDownTestCase() {
 		tblnum.close();
@@ -137,6 +136,11 @@ void AutoTest::test3() {
 
 	tblnum >> findx;
 	getline(cnfFile, cnfStr);
+
+	if(lineNumber != 11) {
+		lineNumber++;
+		return;
+	}
 
 	rel = rel_ptr [findx - 1];
 	YY_BUFFER_STATE buffer = yy_scan_string( const_cast<char*>(cnfStr.c_str()));

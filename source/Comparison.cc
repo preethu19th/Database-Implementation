@@ -40,6 +40,10 @@ void Comparison :: Print () {
 		cout << "< ";
 	else if (op == GreaterThan)
 		cout << "> ";
+	else if (op == GreaterEq)
+		cout << ">= ";
+	else if (op == LessEq)
+		cout << "<= ";
 	else
 		cout << "= ";
 
@@ -395,6 +399,10 @@ void CNF :: GrowFromParseTree (struct AndList *parseTree, Schema *leftSchema,
 				cnf.orList[whichAnd][whichOr].op = GreaterThan;	
 			} else if (myOr->left->code == EQUALS) {
 				cnf.orList[whichAnd][whichOr].op = Equals;
+			} else if (myOr->left->code == LESS_EQ) {
+				cnf.orList[whichAnd][whichOr].op = LessEq;
+			} else if (myOr->left->code == GREATER_EQ) {
+				cnf.orList[whichAnd][whichOr].op = GreaterEq;
 			} else {
 				cerr << "BAD: found a comparison op I don't recognize.\n";
 				exit (1);
@@ -585,6 +593,10 @@ void CNF :: GrowFromParseTree (struct AndList *parseTree, Schema *mySchema,
 				cnf.orList[whichAnd][whichOr].op = GreaterThan;	
 			} else if (myOr->left->code == EQUALS) {
 				cnf.orList[whichAnd][whichOr].op = Equals;
+			} else if (myOr->left->code == LESS_EQ) {
+				cnf.orList[whichAnd][whichOr].op = LessEq;
+			} else if (myOr->left->code == GREATER_EQ) {
+				cnf.orList[whichAnd][whichOr].op = GreaterEq;
 			} else {
 				cerr << "BAD: found a comparison op I don't recognize.\n";
 				exit (1);

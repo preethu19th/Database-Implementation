@@ -93,7 +93,7 @@ y.tab.o: source/Parser.y
 
 lex.yy.o: source/Lexer.l
 	lex  source/Lexer.l
-	mv *.c *.h source
+	mv *.c source
 	gcc  -c source/lex.yy.c -o bin/lex.yy.o
 
 clean: 
