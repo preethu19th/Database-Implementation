@@ -88,7 +88,7 @@ Schema.o: source/Schema.cc
 y.tab.o: source/Parser.y
 	yacc -d source/Parser.y
 	sed $(tag) y.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
-	mv y.tab.c source/
+	mv y.tab.h y.tab.c source/
 	g++ -c source/y.tab.c -o bin/y.tab.o
 
 lex.yy.o: source/Lexer.l
