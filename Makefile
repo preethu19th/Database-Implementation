@@ -12,10 +12,6 @@ CPPFLAGS += -isystem $(GTEST_DIR)/include
 # Flags passed to the C++ compiler.
 CXXFLAGS += -g -Wall -Wextra -pthread
 
-# All tests produced by this Makefile.  Remember to add new tests you
-# created to the list.
-TESTS = dbfile_unittest 
-
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
 GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
@@ -116,19 +112,13 @@ clean:
 	rm -f source/y.tab.h
 	
 
-unittest: makebin $(TESTS)
-
 # Builds a sample test.  A test should link with either gtest.a or
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
 dbfile_unittest.o : source/DBFile_unittest.cc \
-                     source/DBFile.h $(GTEST_HEADERS)
+                    $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/DBFile_unittest.cc -o bin/dbfile_unittest.o
-
-dbfile_unittest : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o dbfile_unittest.o gtest_main.a
-	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/DBFile.o bin/dbfile_unittest.o bin/gtest_main.a -o bin/unittest
-	./bin/unittest
 
 autotest.a: source/autotest.cc \
 	    $(GTEST_HEADERS)
@@ -137,4 +127,12 @@ autotest.a: source/autotest.cc \
 autotest: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o autotest.a gtest_main.a
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/autotest.o  bin/gtest_main.a -lfl  -o  bin/autotest 
 	./bin/autotest
+
+bigq_unittest.o : source/BigQ_unittest.cc \
+                    $(GTEST_HEADERS)
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/BigQ_unittest.cc -o bin/bigq_unittest.o
+
+unittests : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o dbfile_unittest.o bigq_unittest.o gtest_main.a
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/dbfile_unittest.o bin/bigq_unittest.o bin/gtest_main.a -o bin/unittests
+	./bin/unittests
 

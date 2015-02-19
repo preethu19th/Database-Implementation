@@ -13,7 +13,6 @@ To clean - this deletes the following folder bin, a1test
 To run the autotest program - This loads the tpch data into DBFile heap file, scans the lines in the DBFile and apply the cnf on the respective tables using static\_test\_data/cnf file, comparing the output with the expected output in static\_test\_data/expop\* files
 
 	make autotest
-	./bin/autotest
 
 To run the a2-test program - This is used to test the BigQ class
 
@@ -27,8 +26,7 @@ To run the a1-test program - this is used to load, scan, and scan & filter heap 
 
 To run the unittests - this will run all the unittest written in googletest
 
-	make unittest
-	./bin/unittest
+	make unittests
 
 ---------------------------------------------------------------------------------------
 012408-1606P
