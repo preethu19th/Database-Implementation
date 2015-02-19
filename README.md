@@ -1,4 +1,5 @@
 # COP-6726-Spring2015
+[![Build Status](https://magnum.travis-ci.com/preethu19th/COP-6726-Spring2015.svg?token=kpbq8bmL5S9Txs63cGxQ&branch=master)](https://magnum.travis-ci.com/preethu19th/COP-6726-Spring2015)
 
 To run the main program - this is used to run queries againt the tpch-dbgen pipe-delimited text file.
 
