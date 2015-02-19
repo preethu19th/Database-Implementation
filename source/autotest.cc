@@ -12,21 +12,9 @@ extern "C" {
 	void yy_delete_buffer(YY_BUFFER_STATE buffer);
 }
 
-using namespace std;
-
-relation *rel;
 
 class AutoTest : public ::testing::Test {
 	protected:
-
-	// make sure that the file path/dir information below is correct
-	//
-	// dir where binary heap files should be stored
-	static char *dbfile_dir;
- 	// dir where dbgen tpch files (extension *.tbl) can be found
-	static char *tpch_dir;
-	 // full path of the catalog file
-	static char *catalog_path;
 
 	static relation *rel_ptr[8];
 
@@ -38,7 +26,7 @@ class AutoTest : public ::testing::Test {
 	static streambuf *sbuf;
 
 	static void SetUpTestCase() {
-		setup (catalog_path, dbfile_dir, tpch_dir);
+		setup ();
 		rel_ptr[0] = n;
 		rel_ptr[1] = r;
 		rel_ptr[2] = c;
@@ -79,9 +67,6 @@ class AutoTest : public ::testing::Test {
 };
 
 int AutoTest::lineNumber = 1;
-char * AutoTest::dbfile_dir = "a1test/";
-char * AutoTest::tpch_dir = "/cise/tmp/dbi_sp11/DATA/1G/";
-char * AutoTest::catalog_path = "catalog";
 relation * AutoTest::rel_ptr[8];
 
 ifstream AutoTest::tblnum("static_test_data/tblnum");

@@ -54,20 +54,20 @@ endif
 makebin:
 	mkdir -p bin test_data a1test
 
-test2: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o y.tab.o lex.yy.o test2.o Pipe.o
-	$(CC) -o  bin/test2 bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/BigQ.o bin/y.tab.o bin/lex.yy.o bin/test2.o bin/Pipe.o -lfl -lpthread
+test2: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test2.a
+	$(CC) -o bin/test.out bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test2.o -lfl -lpthread
 
-test: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o test.a
-	$(CC) -o  bin/test bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/test.o -lfl
+a1-test: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o a1-test.a
+	$(CC) -o  bin/a1-test bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/a1-test.o -lfl
 	
 main: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o  bin/main bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/y.tab.o bin/lex.yy.o bin/main.o -lfl
 	
-test2.o:source/test2.cc
-	$(CC) -g -c source/test2.cc -o bin/test2.o
+a1-test.a: source/a1-test.cc
+	$(CC) -g -c source/a1-test.cc -o bin/a1-test.o
 
-test.a: source/test.cc
-	$(CC) -g -c source/test.cc -o bin/test.o
+test2.a: source/test2.cc
+	$(CC) -g -c source/test2.cc -o bin/test2.o
 
 main.o: source/main.cc
 	$(CC) -g -c source/main.cc -o bin/main.o
@@ -111,7 +111,7 @@ clean:
 	rm -rf a1test 
 	rm -rf test_data
 	rm -rf bin/*
-	rm -f source/.tab.c
+	rm -f source/y.tab.c
 	rm -f source/lex.yy.c
 	rm -f source/y.tab.h
 	
@@ -131,7 +131,7 @@ dbfile_unittest : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File
 	./bin/unittest
 
 autotest.a: source/autotest.cc \
-	    source/test.h $(GTEST_HEADERS)
+	    $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS)  -c source/autotest.cc -o bin/autotest.o
 
 autotest: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o autotest.a gtest_main.a

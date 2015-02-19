@@ -5,10 +5,24 @@ To run the main program - this is used to run queries againt the tpch-dbgen pipe
 	make main
 	./bin/main
 
-To run the test program - this is used to load, scan, and scan & filter heap DBFiles
+To clean - this deletes the following folder bin, a1test
 
-	make test
-	./bin/test
+	make clean
+
+To run the autotest program - This loads the tpch data into DBFile heap file, scans the lines in the DBFile and apply the cnf on the respective tables using static\_test\_data/cnf file, comparing the output with the expected output in static\_test\_data/expop\* files
+
+	make autotest
+	./bin/autotest
+
+To run the a2-test program - This is used to test the BigQ class
+
+	make test2
+	./bin/test2
+
+To run the a1-test program - this is used to load, scan, and scan & filter heap DBFiles interactively
+
+	make a1-test
+	./bin/a1-test
 
 To run the unittests - this will run all the unittest written in googletest
 
