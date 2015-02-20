@@ -9,7 +9,6 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	outPipe = &out;
 	sortOrder = &sortorder;
 	pthread_create(&wthread, NULL, &workerThread, (void *)this);
-	cout<< "Sort Order CNF: "<<endl;
 	sortOrder->Print();
 }
 
@@ -25,11 +24,9 @@ void BigQ :: StartProcessing(void)
 	priority_queue<BigQRecord*, vector<BigQRecord*>, BigQRecord> sortedBigQ;
 	BigQRecord *bRec;
 	Page tmpPage;
-	Page *currRunPages = new Page[runLen];
 	File tmpFile;
-	int currRunLen = 0;
+	int currRunPageLen = 0;
 	int run_num = 0;
-	int i;
 	int totRuns =0;
 	off_t whichPage = 0;
 	bool is_terminated = false;
@@ -47,7 +44,7 @@ void BigQ :: StartProcessing(void)
 				sortedBigQ.push(bRec);
 				currPQRec = new Record();
 			}
-			currRunLen++;
+			currRunPageLen++;
 		}
 		if (!is_terminated) {
 			if (!tmpPage.Append(currRec)) {
@@ -59,36 +56,30 @@ void BigQ :: StartProcessing(void)
 					sortedBigQ.push(bRec);
 					currPQRec = new Record();
 				}
-				currRunLen++;
+				currRunPageLen++;
 
 				tmpPage.Append(currRec);
 			}
 		}
 
-		if (currRunLen == runLen || is_terminated) {
-			i = 0;
+		if (currRunPageLen == runLen || is_terminated) {
 			while (!sortedBigQ.empty()) {
 				currPQRec = new Record();
 				bRec = sortedBigQ.top();
 				currPQRec->Consume(bRec->record);
-				if (!currRunPages[i].Append(currPQRec)) {
-					i++;
-					currRunPages[i].Append(currPQRec);
+				if (!tmpPage.Append(currPQRec)) {
+					tmpFile.AddPage(&tmpPage, whichPage);
+					whichPage++;
+					tmpPage.EmptyItOut();
+					tmpPage.Append(currPQRec);
 				}
 				delete bRec->record;
 				sortedBigQ.pop();
 				delete bRec;
 			}
 
-			int j = 0;
-			while (j < i+1) {
-				tmpFile.AddPage(&currRunPages[j], whichPage);
-				whichPage++;
-				currRunPages[j].EmptyItOut();
-				j++;
-			}
 			totRuns++;
-			currRunLen = 0;
+			currRunPageLen = 0;
 			if(is_terminated)
 				break;
 		}
@@ -96,8 +87,6 @@ void BigQ :: StartProcessing(void)
 
 // TODO: NEXT PHASE OF TPPMS
 
-	cout<<"Curr Pages address: "<<currRunPages<<endl;
-	delete [] currRunPages;
 	tmpFile.Close();
 	outPipe->ShutDown ();
 }

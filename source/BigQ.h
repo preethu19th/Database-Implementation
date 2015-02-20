@@ -33,7 +33,7 @@ public:
 		BigQRecord *bR1 = (BigQRecord *) bigRec1;
 		BigQRecord *bR2 = (BigQRecord *) bigRec2;
 		ComparisonEngine ceng;
-		if (ceng.Compare(bR1->record, bR2->record, bR1->sortOrder) == 1)
+		if (ceng.Compare(bR1->record, bR2->record, bR1->sortOrder) > 0)
 			return true;
 
 		return false;
