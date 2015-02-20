@@ -9,6 +9,7 @@
 #include <string>
 
 using namespace std;
+static Schema mySchema("catalog", "lineitem");
 
 void *producer (void *arg) {
 
@@ -20,7 +21,7 @@ void *producer (void *arg) {
 
         while (temp.SuckNextRecord (&mySchema, tableFile) == 1) {
 		counter++;
-		myPipe->Insert(temp);
+		myPipe->Insert(&temp);
 	}
 	myPipe->ShutDown ();
 
