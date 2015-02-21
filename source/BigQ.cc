@@ -24,12 +24,15 @@ void BigQ :: StartProcessing(void)
 	priority_queue<BigQRecord*, vector<BigQRecord*>, BigQRecord> sortedBigQ;
 	BigQRecord *bRec;
 	Page tmpPage;
+	Page tmpPage2;
 	File tmpFile;
 	int currRunPageLen = 0;
 	int run_num = 0;
 	int totRuns =0;
 	off_t whichPage = 0;
 	bool is_terminated = false;
+	int tot_recs=0;
+	int actRecs = 0;
 
 	tmpFile.Open(0, "temp_bigQfile");
 	while (true) {
@@ -67,26 +70,83 @@ void BigQ :: StartProcessing(void)
 				currPQRec = new Record();
 				bRec = sortedBigQ.top();
 				currPQRec->Consume(bRec->record);
-				if (!tmpPage.Append(currPQRec)) {
-					tmpFile.AddPage(&tmpPage, whichPage);
+				if (!tmpPage2.Append(currPQRec)) {
+					tmpFile.AddPage(&tmpPage2, whichPage);
+					actRecs += tmpPage2.GetNumRecs();
 					whichPage++;
-					tmpPage.EmptyItOut();
-					tmpPage.Append(currPQRec);
+					tmpPage2.EmptyItOut();
+					currRunPageLen--;
+					if(currRunPageLen == 0) {
+						bRec->record->Consume(currPQRec);
+						break;
+					}
+					tmpPage2.Append(currPQRec);
 				}
-				delete bRec->record;
+
 				sortedBigQ.pop();
+				tot_recs++;
+				delete bRec->record;
 				delete bRec;
 			}
 
+			while (currRunPageLen > 0) {
+					tmpFile.AddPage(&tmpPage2, whichPage);
+					actRecs += tmpPage2.GetNumRecs();
+					tmpPage2.EmptyItOut();
+					whichPage++;
+					currRunPageLen--;
+			}
+
 			totRuns++;
-			currRunPageLen = 0;
+			cout<<"GPK: tot_runs"<< totRuns << "currRunPageLen: " << currRunPageLen<<endl;
 			if(is_terminated)
 				break;
 		}
 	}
 
-// TODO: NEXT PHASE OF TPPMS
+	bool isPageDirty = false;
+	currRunPageLen = 0;
+	while (!sortedBigQ.empty()) {
+		currPQRec = new Record();
+		bRec = sortedBigQ.top();
+		currPQRec->Consume(bRec->record);
+		if (!tmpPage2.Append(currPQRec)) {
+			tmpFile.AddPage(&tmpPage2, whichPage);
+			actRecs += tmpPage2.GetNumRecs();
+			whichPage++;
+			tmpPage2.EmptyItOut();
+			tmpPage2.Append(currPQRec);
+			isPageDirty = true;
+			currRunPageLen++;
+		}
+		if (currRunPageLen == runLen) {
+			currRunPageLen = 0;
+			totRuns++;
+		}
+		delete bRec->record;
+		sortedBigQ.pop();
+		tot_recs++;
+		delete bRec;
+	}
 
+	if (isPageDirty) {
+		tmpFile.AddPage(&tmpPage2, whichPage);
+		actRecs += tmpPage2.GetNumRecs();
+		whichPage++;
+		tmpPage2.EmptyItOut();
+		while (currRunPageLen != runLen) {
+			tmpFile.AddPage(&tmpPage2, whichPage);
+			actRecs += tmpPage2.GetNumRecs();
+			tmpPage2.EmptyItOut();
+			whichPage++;
+			currRunPageLen++;
+		}
+		totRuns++;
+	}
+
+// TODO: NEXT PHASE OF TPPMS
+	cout<<"Tot recs: "<< tot_recs<<endl;
+	cout<<"Tot act recs: "<< actRecs<<endl;
 	tmpFile.Close();
 	outPipe->ShutDown ();
 }

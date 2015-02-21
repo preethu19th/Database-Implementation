@@ -45,6 +45,10 @@ void Page :: EmptyItOut () {
 	numRecs = 0;
 }
 
+int Page :: GetNumRecs () {
+	return numRecs;
+}
+
 
 int Page :: GetFirst (Record *firstOne) {
 
