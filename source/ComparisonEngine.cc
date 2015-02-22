@@ -62,8 +62,10 @@ int ComparisonEngine :: Compare(Record *left, Record *right, OrderMaker *orderUs
 			// last case: dealing with strings
 			default:
 			int sc = strcmp (val1, val2);
-			if (sc != 0)
-				return sc;
+			if (sc > 0)
+				return 1;
+			else if(sc < 0)
+				return -1;
 
 			break;
 	
@@ -130,8 +132,10 @@ int ComparisonEngine :: Compare (Record *left, OrderMaker *order_left, Record *r
 			// last case: dealing with strings
 			default:
 			int sc = strcmp (val1, val2);
-			if (sc != 0)
-				return sc;
+			if (sc > 0)
+				return 1;
+			else if(sc < 0)
+				return -1;
 
 			break;
 	

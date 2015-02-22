@@ -66,6 +66,7 @@ public:
 	// that the schema also be given so that the record can be interpreted
 	void Print (Schema *mySchema);
 	void PrintWoComment (Schema *mySchema);
+	void Print (Schema *mySchema,bool printComment);
 };
 
 #endif

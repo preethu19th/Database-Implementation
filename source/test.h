@@ -15,11 +15,12 @@ char *catalog_path = "catalog";
 char *tpch_dir ="/cise/tmp/dbi_sp11/DATA/1G/"; // dir where dbgen tpch files (extension *.tbl) can be found
 char *dbfile_dir = "a1test/"; 
 
-
+typedef struct yy_buffer_state * YY_BUFFER_STATE;
 extern "C" {
-	int yyparse(void);   // defined in y.tab.c
+	int yyparse();
+	YY_BUFFER_STATE yy_scan_string(char * str);
+	void yy_delete_buffer(YY_BUFFER_STATE buffer);
 }
-
 extern struct AndList *final;
 
 typedef struct {
@@ -65,11 +66,16 @@ public:
 			exit (1);
 		}
 		cout << " \n";
+ 		//YY_BUFFER_STATE buffer = yy_scan_string( const_cast<char*>("(n_nationkey)"));
 		Record literal;
 		CNF sort_pred;
 		sort_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
 		OrderMaker dummy;
 		sort_pred.GetSortOrders (sortorder, dummy);
+		//yy_delete_buffer(buffer);
+	}
+	~relation() {
+		delete rschema;
 	}
 };
 
@@ -106,7 +112,14 @@ void setup () {
 }
 
 void cleanup () {
-	delete s, p, ps, n, li, r, o, c;
+	delete s;
+	delete  p;
+	delete  ps;
+	delete  n;
+	delete  li;
+	delete  r;
+	delete  o;
+	delete  c;
 }
 
 #endif

@@ -5,39 +5,46 @@
 #include "Pipe.h"
 #include "File.h"
 #include "Record.h"
+#include "Schema.h"
+#include "Comparison.h"
 #include <queue>
-#include <iomanip>
 
 using namespace std;
 
+class BigQRecord {
+	ComparisonEngine cEng;
+public:
+	int runID;
+	OrderMaker *sortOrder;
+	Record *record;
+	bool operator()(void *bigRec1, void *bigRec2) {
+		BigQRecord *bR1 = (BigQRecord *) bigRec1;
+		BigQRecord *bR2 = (BigQRecord *) bigRec2;
+		return (cEng.Compare(bR1->record, bR2->record, bR1->sortOrder) ==1);
+	}
+};
+
 class BigQ {
 	int runLen;
+	int whichPage;
+	int numOfRuns;
 	Pipe *inPipe, *outPipe;
 	OrderMaker *sortOrder;
+	Schema *mySchema;
 	pthread_t wthread;
-
+	priority_queue<BigQRecord*, vector<BigQRecord*>, BigQRecord> sortedBigQ;
+	Page tmpPage;
+	File tmpFile;
+	void pushPQ(Record *r);
+	void flushPageToQ();
+	void writeToPages();
+	
 public:
+	int readFromPipe;
+	int writeToPipe;
 	BigQ();
 	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);
 	~BigQ ();
 	void StartProcessing(void);
 };
-
-class BigQRecord {
-public:
-	int runID;
-	OrderMaker *sortOrder;
-	Record *record;
-	bool operator()(void *bigRec1, void *bigRec2)
-	{
-		BigQRecord *bR1 = (BigQRecord *) bigRec1;
-		BigQRecord *bR2 = (BigQRecord *) bigRec2;
-		ComparisonEngine ceng;
-		if (ceng.Compare(bR1->record, bR2->record, bR1->sortOrder) > 0)
-			return true;
-
-		return false;
-	}
-};
-
 #endif

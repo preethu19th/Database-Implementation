@@ -14,7 +14,7 @@ struct Attribute {
 	char *name;
 	Type myType;
 	~Attribute(){
-		delete  [] name;
+		delete[] name;
 		name = NULL;
 	}
 };

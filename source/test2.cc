@@ -126,6 +126,7 @@ int main (int argc, char *argv[]) {
 		cout << " \t 2. sort + display \n";
 		cout << " \t 3. sort + write \n\t ";
 		cin >> tindx;
+		//tindx = 1;
 	}
 
 	int findx = 0;
@@ -139,12 +140,14 @@ int main (int argc, char *argv[]) {
 		cout << "\t 6. orders \n";
 		cout << "\t 7. lineitem \n \t ";
 		cin >> findx;
+		//findx = 1;
 	}
 	rel = rel_ptr [findx - 1];
 
 	int runlen;
 	cout << "\t\n specify runlength:\n\t ";
 	cin >> runlen;
+	//runlen = 2;
 	
 	test1 (tindx, runlen);
 
