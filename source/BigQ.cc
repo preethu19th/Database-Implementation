@@ -55,7 +55,46 @@ void BigQ :: StartProcessing(void) {
 	writeToPages();
 	if(!sortedBigQ.empty()){writeToPages();}
 
+	/* Phase-2 of TPPNM */
+	Page *P = new Page[numOfRuns];
+	Record *R = new Record[numOfRuns];
+	int *currPageInRun = new int[numOfRuns];
+	bool *isRunCompleted = new bool[numOfRuns];
+	int i = 0;
+	int winner = 0;
+
+	/* Init step */
+	while (i < numOfRuns) {
+		tmpFile.GetPage(&P[i], (off_t)i*runLen);
+		P[i].GetFirst(&R[i]);
+		currPageInRun[i] = 0;
+		isRunCompleted[i] = false;
+		i++;
+	}
+
+	while (true) {
+		winner = GetMinIndex(R, isRunCompleted);
+		if (winner == -1)
+			break;
+
+		outPipe->Insert(&R[winner]);
+		while (!P[winner].GetFirst(&R[winner])) {
+			if (currPageInRun[winner] == runLen -1) {
+				isRunCompleted[winner] = true;
+				break;
+			} else {
+				currPageInRun[winner]++;
+				tmpFile.GetPage(&P[winner], (off_t)((winner*runLen)
+					+ currPageInRun[winner]));
+			}
+		}
+	}
+
 	outPipe->ShutDown ();
+	delete []P;
+	delete []R;
+	delete []currPageInRun;
+	delete []isRunCompleted;
 }
 
 void BigQ :: pushPQ (Record *r) {
@@ -105,4 +144,36 @@ void BigQ :: writeToPages () {
 		currRunPageLen--;
 	}
 	numOfRuns++;
+}
+
+int BigQ :: GetMinIndex(Record *R, bool *rIsDone)
+{
+	int i = 0;
+	int min = -1;
+	ComparisonEngine ceng;
+
+	/* Init step */
+	i = 0;
+	while (i < numOfRuns) {
+		if (!rIsDone[i]) {
+			min = i;
+			i++;
+			break;
+		}
+		i++;
+	}
+
+	/* Termination case where all records are empty */
+	if (min == -1)
+		return min;
+
+	while (i < numOfRuns) {
+		if (rIsDone[i])
+			continue;
+		if (ceng.Compare(&R[min], &R[i], sortOrder) > 0)
+			min = i;
+		i++;
+	}
+
+	return min;
 }

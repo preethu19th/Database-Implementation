@@ -38,7 +38,8 @@ class BigQ {
 	void pushPQ(Record *r);
 	void flushPageToQ();
 	void writeToPages();
-	
+	int GetMinIndex(Record *R, bool *rIsDone);
+
 public:
 	int readFromPipe;
 	int writeToPipe;
