@@ -1,17 +1,5 @@
-#include <iostream>
-#include "DBFile.h"
 #include "test.h"
 #include "gtest/gtest.h"
-#include <fstream>
-#include <stdlib.h>
-
-typedef struct yy_buffer_state * YY_BUFFER_STATE;
-extern "C" {
-	int yyparse();
-	YY_BUFFER_STATE yy_scan_string(char * str);
-	void yy_delete_buffer(YY_BUFFER_STATE buffer);
-}
-
 
 class AutoTest : public ::testing::Test {
 	protected:
@@ -23,7 +11,6 @@ class AutoTest : public ::testing::Test {
 	static int lineNumber;
 	static int tblcnts[8];
 	static int scancnts[8];
-	static streambuf *sbuf;
 
 	static void SetUpTestCase() {
 		setup ();
@@ -52,14 +39,6 @@ class AutoTest : public ::testing::Test {
 		cleanup ();
 	}
 
-	inline static void ResetCoutBuffer() {
-		cout.rdbuf(sbuf);
-	}
-
-	inline static void SetCoutBuffer(stringstream *buf) {
-		cout.rdbuf(buf->rdbuf());
-	}
-
 	static void test1();
 	static void test2();
 	static void test3();
@@ -74,7 +53,6 @@ ifstream AutoTest::cnfFile("static_test_data/cnf");
 int AutoTest::findx = 0;
 int AutoTest::tblcnts[8];
 int AutoTest::scancnts[8];
-streambuf* AutoTest::sbuf = cout.rdbuf();
 
 void AutoTest::test1 () {
 
@@ -151,17 +129,10 @@ void AutoTest::test3() {
 	ResetCoutBuffer();
 	dbfile.Close ();
 
-	SetCoutBuffer(&eop);
+
 	char expectedFile[25];
 	sprintf(expectedFile,"static_test_data/expop%d",lineNumber);
-        FILE *tableFile = fopen (expectedFile, "r");
-        while (temp.SuckNextRecord (rel->schema(), tableFile) == 1) {
-		eopcnt++;
-		temp.PrintWoComment(rel->schema());
-	}
-	ResetCoutBuffer();
-
-	fclose(tableFile);
+	GetExpectedOp(&eop,expectedFile,rel->schema(),eopcnt);
 
 	EXPECT_EQ(eopcnt, counter);
 	EXPECT_EQ(eop.str(),aop.str());

@@ -117,7 +117,7 @@ int main (int argc, char *argv[]) {
 
 	setup ();
 
-	relation *rel_ptr[] = {n, r, c, p, ps, o, li};
+	relation *rel_ptr[] = {n, r, c, p, ps, o, li, s};
 
 	int tindx = 0;
 	while (tindx < 1 || tindx > 3) {
@@ -130,7 +130,7 @@ int main (int argc, char *argv[]) {
 	}
 
 	int findx = 0;
-	while (findx < 1 || findx > 7) {
+	while (findx < 1 || findx > 8) {
 		cout << "\n select dbfile to use: \n";
 		cout << "\t 1. nation \n";
 		cout << "\t 2. region \n";
@@ -139,6 +139,7 @@ int main (int argc, char *argv[]) {
 		cout << "\t 5. partsupp \n";
 		cout << "\t 6. orders \n";
 		cout << "\t 7. lineitem \n \t ";
+		cout << "\t 8. supplier \n \t ";
 		cin >> findx;
 		//findx = 1;
 	}

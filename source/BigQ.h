@@ -25,6 +25,7 @@ public:
 };
 
 class BigQ {
+	bool seqRun;
 	int runLen;
 	int whichPage;
 	int numOfRuns;
@@ -45,6 +46,7 @@ public:
 	int writeToPipe;
 	BigQ();
 	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);
+	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen,bool seqrun);
 	~BigQ ();
 	void StartProcessing(void);
 };

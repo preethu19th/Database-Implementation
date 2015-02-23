@@ -6,6 +6,9 @@
 #include "Pipe.h"
 #include "DBFile.h"
 #include "Record.h"
+#include <fstream>
+#include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -14,6 +17,7 @@ using namespace std;
 char *catalog_path = "catalog"; 
 char *tpch_dir ="/cise/tmp/dbi_sp11/DATA/1G/"; // dir where dbgen tpch files (extension *.tbl) can be found
 char *dbfile_dir = "a1test/"; 
+streambuf *sbuf = cout.rdbuf();
 
 typedef struct yy_buffer_state * YY_BUFFER_STATE;
 extern "C" {
@@ -120,6 +124,27 @@ void cleanup () {
 	delete  r;
 	delete  o;
 	delete  c;
+}
+
+void ResetCoutBuffer() {
+	cout.rdbuf(sbuf);
+}
+
+void SetCoutBuffer(stringstream *buf) {
+	cout.rdbuf(buf->rdbuf());
+}
+
+void GetExpectedOp(stringstream *eop,char *expectedFile, Schema *s,int &eopcnt) {
+	Record temp;
+	cout<< expectedFile << endl;
+        FILE *tableFile = fopen (expectedFile, "r");
+	SetCoutBuffer(eop);
+        while (temp.SuckNextRecord (s, tableFile) == 1) {
+		eopcnt++;
+		temp.PrintWoComment(s);
+	}
+	ResetCoutBuffer();
+	fclose(tableFile);
 }
 
 #endif

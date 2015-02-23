@@ -12,7 +12,8 @@ void *workerThread(void *temp) {
 BigQ::BigQ() {
 }
 
-BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
+BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen, bool seqrun) {
+	seqRun =seqrun;
 	whichPage = 0;
 	numOfRuns = 0;
 	readFromPipe = 0;
@@ -21,12 +22,17 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 	inPipe = &in;
 	outPipe = &out;
 	sortOrder = &sortorder;
-	pthread_create(&wthread, NULL, &workerThread, (void *)this);
 	tmpFile.Open(0, "temp_bigQfile");
+	if(!seqRun) pthread_create(&wthread, NULL, &workerThread, (void *)this);
+}
+
+BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
+	BigQ(in,out,sortorder,runlen,false);
 }
 
 BigQ::~BigQ () {
-	pthread_join (wthread, NULL);
+	if(!seqRun) 
+		pthread_join (wthread, NULL);
 	tmpFile.Close();
 	remove("temp_bigQfile");
 }
@@ -74,9 +80,9 @@ void BigQ :: StartProcessing(void) {
 
 	while (true) {
 		winner = GetMinIndex(R, isRunCompleted);
-		if (winner == -1)
-			break;
+		if (winner == -1) break;
 
+		writeToPipe++;
 		outPipe->Insert(&R[winner]);
 		while (!P[winner].GetFirst(&R[winner])) {
 			if (currPageInRun[winner] == runLen -1) {
@@ -84,8 +90,9 @@ void BigQ :: StartProcessing(void) {
 				break;
 			} else {
 				currPageInRun[winner]++;
-				tmpFile.GetPage(&P[winner], (off_t)((winner*runLen)
-					+ currPageInRun[winner]));
+				off_t nextOff = (winner*runLen)+
+					currPageInRun[winner];
+				tmpFile.GetPage(&P[winner], nextOff);
 			}
 		}
 	}
