@@ -53,6 +53,7 @@ void BigQ :: StartProcessing(void) {
 			}
 			tmpPage.Append(currRec);
 		}
+		delete currRec;
 		currRec = new Record();
 		is_terminated = !inPipe->Remove(currRec);
 	}
@@ -143,6 +144,8 @@ void BigQ :: writeToPages () {
 		}
 		currRecNum++;
 		sortedBigQ.pop();
+		delete currRec;
+		delete bRec;
 	}
 	while(currRunPageLen > 0) {
 		tmpFile.AddPage(&tmpPage,whichPage);
