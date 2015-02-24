@@ -175,8 +175,9 @@ int BigQ :: GetMinIndex(Record *R, bool *rIsDone)
 		return min;
 
 	while (i < numOfRuns) {
-		if (rIsDone[i])
-			continue;
+		if (rIsDone[i]) {
+			i++;continue;
+		}
 		if (ceng.Compare(&R[min], &R[i], sortOrder) > 0)
 			min = i;
 		i++;
