@@ -64,11 +64,11 @@ inline int DBFile::ReadMetaFile () {
 }
 
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
-	filePath = f_path;
 	if(InvalidFileName(f_path)){
 		cout << "Error: Invalid file name!\n";
 		return 0;
 	}
+	filePath = f_path;
 	if(f_type == heap) {
 		HeapDBFile *hFile = new HeapDBFile();
 		int retVal = hFile->Create(f_path,f_type,startup);
