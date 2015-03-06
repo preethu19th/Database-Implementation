@@ -2,18 +2,29 @@
 #include "Record.h"
 #include "Schema.h"
 #include "File.h"
+#include "Defs.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
-#include "DBFile.h"
-#include "Defs.h"
 #include <iostream>
-#include <fstream>
 #include <string>
+#include <fstream>
+
+
+using namespace std;
+
+#include "GenericDBFile.h"
+#include "DBFile.h"
 
 DBFile::DBFile () {
-	whichPage = 0;
-	readRecsOffPage = 0;
-	totalRecords = 0;
+	assignedVar = false;
+}
+DBFile::~DBFile () {
+	if(assignedVar) delete myInternalVar;
+
+}
+
+inline bool DBFile::InvalidFileName(char *f_path) {
+		return (f_path == NULL || char_traits<char>::length(f_path) == 0);
 }
 
 inline int DBFile::WriteMetaFile () {
@@ -26,11 +37,7 @@ inline int DBFile::WriteMetaFile () {
 		return 0;
 	}
 
-	metaFile << fileType << endl;
-	metaFile << whichPage << endl;
-	metaFile << readRecsOffPage << endl;
-	metaFile << totalRecords << endl;
-	metaFile << file.GetLength () << endl;
+	myInternalVar->WriteMetaFile(metaFile);
 	metaFile.close();
 	return 1;
 }
@@ -46,119 +53,83 @@ inline int DBFile::ReadMetaFile () {
 	}
 	metaFile >> intFileType;
 	fileType = (fType) intFileType;
-	metaFile >> whichPage;
-	metaFile >> readRecsOffPage;
-	metaFile >> totalRecords;
+	if(fileType == heap) {
+		HeapDBFile *hFile = new HeapDBFile();
+		myInternalVar = (GenericDBFile*) hFile;
+		assignedVar = true;
+	}
+	int retVal = myInternalVar->ReadMetaFile(metaFile);
 	metaFile.close();
-	return 1;
-}
-
-inline bool DBFile::InvalidFileName(char *f_path) {
-	return (f_path ==NULL || std::char_traits<char>::length(f_path) == 0);
+	return retVal;
 }
 
 int DBFile::Create (char *f_path, fType f_type, void *startup) {
+	filePath = f_path;
+	if(InvalidFileName(f_path)){
+		cout << "Error: Invalid file name!\n";
+		return 0;
+	}
+	if(f_type == heap) {
+		HeapDBFile *hFile = new HeapDBFile();
+		int retVal = hFile->Create(f_path,f_type,startup);
+		assignedVar = true;
+		if(!retVal) { return retVal;}
+		myInternalVar = (GenericDBFile*) hFile;
+	}
+	
+	return WriteMetaFile ();
+}
+
+void DBFile::Load (Schema &f_schema, char *loadpath) {
+	myInternalVar->Load(f_schema,loadpath);
+}
+
+int DBFile::Open (char *f_path) {
 	if(InvalidFileName(f_path)){
 		cout << "Error: Invalid file name!\n";
 		return 0;
 	}
 	filePath = f_path;
-	fileType = f_type;
-
-	if (fileType != heap) {
-		cout << "ERROR: currently not supporting this file type\n";
-		return 0;
-	}
-
-	file.Open (0, f_path);
-	return WriteMetaFile ();
-}
-
-void DBFile::Load (Schema &f_schema, char *loadpath) {
-	FILE *tableFile = fopen (loadpath, "r");
-	Record temp;
-
-	while (temp.SuckNextRecord (&f_schema, tableFile) == 1)
-		Add(temp);
-
-	fclose(tableFile);
-}
-
-int DBFile::Open (char *f_path) {
-	filePath = f_path;
 	if(ReadMetaFile()) {
-		file.Open (1, f_path);
-		return 1;
+		return myInternalVar->Open(f_path);
 	} else {
 		return 0;
 	}
 }
 
 void DBFile::MoveFirst () {
-	if(whichPage != 0 ) {
-		whichPage = 0;
-		file.GetPage(&currPage,whichPage);
-		whichPage++;
-	}
+	myInternalVar->MoveFirst();
 }
 
 int DBFile::Close () {
-
-	if(totalRecords > 0) {
-        	off_t curLen;
-		file.AddPage(&currPage, whichPage);
-		whichPage++;
-		currPage.EmptyItOut();
+	int retVal = myInternalVar->Close();
+	if(retVal) {
+		retVal = WriteMetaFile();
 	}
-
-	file.Close();
-
-	return WriteMetaFile ();
+	return retVal;
 }
 
 void DBFile::Add (Record &rec) {
-	totalRecords++;
-	if (!currPage.Append(&rec)) {
-		file.AddPage(&currPage, whichPage);
-		whichPage++;
-		currPage.EmptyItOut();
-		currPage.Append(&rec);
-	}
+	myInternalVar->Add(rec);
 }
 
 int DBFile::GetNext (Record &fetchme) {
-	if(currPage.GetFirst(&fetchme)){
-		readRecsOffPage++;
-		return 1;
-	} else {
-		if(whichPage + 1 >= file.GetLength ()){
-			return 0;
-		} else {
-			file.GetPage(&currPage,whichPage);
-			whichPage++;
-			readRecsOffPage = 0;
-			return currPage.GetFirst(&fetchme);
-		}
-	}
+	return myInternalVar->GetNext(fetchme);
 }
 
 int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
-	ComparisonEngine comp;
-	while(GetNext(fetchme))
-		if(comp.Compare (&fetchme, &literal, &cnf)) {
-			return 1;
-		}
-	return 0;
+	return myInternalVar->GetNext(fetchme,cnf,literal);
 }
 
 bool DBFile::CheckFileType (fType checkFileType) {
-	return checkFileType == fileType;
+	myInternalVar->CheckFileType(checkFileType);
 }
-
 bool DBFile::CheckWhichPage(int checkWP) {
-	return checkWP == whichPage;
+	myInternalVar->CheckWhichPage(checkWP);
 }
-
 bool DBFile::CheckFileLength(int checkFL) {
-	return checkFL == file.GetLength ();
+	myInternalVar->CheckFileLength(checkFL);
+}
+int DBFile::TotalRecords() {
+	return myInternalVar->totalRecords;
 }

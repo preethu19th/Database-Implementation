@@ -1,32 +1,24 @@
 #ifndef DBFILE_H
 #define DBFILE_H
 
-#include "TwoWayList.h"
-#include "Record.h"
-#include "Schema.h"
-#include "File.h"
-#include "Comparison.h"
-#include "ComparisonEngine.h"
-#include <string>
-
-typedef enum {heap, sorted, tree} fType;
+#include "GenericDBFile.h"
 
 class DBFile {
 private:
 	string filePath;
-	off_t whichPage;
+	bool assignedVar;
 	fType fileType;
-	Page currPage;
-	File file;
+	GenericDBFile *myInternalVar;
+	inline bool InvalidFileName(char *f_path);
+
 	inline int WriteMetaFile ();
 	inline int ReadMetaFile ();
-	int readRecsOffPage;
-	inline bool InvalidFileName(char *f_path);
 
 public:
 	DBFile (); 
+	~DBFile (); 
 
-	int totalRecords;
+	int TotalRecords();
 	int Create (char *fpath, fType file_type, void *startup);
 	int Open (char *fpath);
 	int Close ();

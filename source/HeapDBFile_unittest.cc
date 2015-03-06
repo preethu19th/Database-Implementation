@@ -9,7 +9,7 @@
 
 using namespace std;
 
-class DBFileHeapTest : public ::testing::Test {
+class HeapDBFileTest : public ::testing::Test {
 	protected:
 
 	static DBFile tmp;
@@ -56,34 +56,34 @@ class DBFileHeapTest : public ::testing::Test {
 	}
 };
 
-DBFile DBFileHeapTest::tmp;
-ifstream DBFileHeapTest::lineItemsOp("static_test_data/li_op.txt");
-stringstream DBFileHeapTest::eop_buffer;
-Record DBFileHeapTest::tmpRecord;
-Schema DBFileHeapTest::mySchema("catalog", "lineitem");
-char* DBFileHeapTest::loadFileName = "static_test_data/li.tbl";
-streambuf* DBFileHeapTest::sbuf = cout.rdbuf();
+DBFile HeapDBFileTest::tmp;
+ifstream HeapDBFileTest::lineItemsOp("static_test_data/li_op.txt");
+stringstream HeapDBFileTest::eop_buffer;
+Record HeapDBFileTest::tmpRecord;
+Schema HeapDBFileTest::mySchema("catalog", "lineitem");
+char* HeapDBFileTest::loadFileName = "static_test_data/li.tbl";
+streambuf* HeapDBFileTest::sbuf = cout.rdbuf();
 
 
-char* DBFileHeapTest::fileName = "test_data/test_create";
-char* DBFileHeapTest::fileName2 = "test_data/test_create2";
-void* DBFileHeapTest::startUp = NULL;
-char* DBFileHeapTest::metaFileName = "test_data/test_create.metadata";
+char* HeapDBFileTest::fileName = "test_data/test_create";
+char* HeapDBFileTest::fileName2 = "test_data/test_create2";
+void* HeapDBFileTest::startUp = NULL;
+char* HeapDBFileTest::metaFileName = "test_data/test_create.metadata";
 
-TEST_F  (DBFileHeapTest, check_empty_filename) {
+TEST_F  (HeapDBFileTest, check_empty_filename) {
 	char *emptyFileName ="";
 	EXPECT_EQ(false,tmp.Create(emptyFileName, heap,startUp));
 	EXPECT_EQ(false,tmp.Create(NULL, heap,startUp));
 }
 
-TEST_F (DBFileHeapTest, create_heap_file) {
+TEST_F (HeapDBFileTest, create_heap_file) {
 	DeleteFiles ();
 	EXPECT_EQ(true, tmp.Create(fileName, heap, startUp));
 	EXPECT_EQ(true, FileExists(fileName));
 	EXPECT_EQ(true, FileExists(metaFileName));
 }
 
-TEST_F (DBFileHeapTest, create_meta_file) {
+TEST_F (HeapDBFileTest, create_meta_file) {
 
 	DeleteFiles ();
 	tmp.Create(fileName, heap, startUp);
@@ -104,7 +104,7 @@ TEST_F (DBFileHeapTest, create_meta_file) {
 	EXPECT_EQ(true, FileExists(metaFileName));
 }
 
-TEST_F (DBFileHeapTest, open) {
+TEST_F (HeapDBFileTest, open) {
 	DeleteFiles ();
 	DBFile tmp2;
 	EXPECT_EQ(true, tmp2.Create(fileName, heap, startUp));
@@ -112,7 +112,7 @@ TEST_F (DBFileHeapTest, open) {
 	EXPECT_EQ(true, tmp2.CheckFileType(heap));
 }
 
-TEST_F (DBFileHeapTest, load_meta_data) {
+TEST_F (HeapDBFileTest, load_meta_data) {
 	DBFile tmp3;
 	char *fileName1 = "test_data/test_meta_read";
 	char *metaFileName1 = "test_data/test_meta_read.metadata";
@@ -134,7 +134,7 @@ TEST_F (DBFileHeapTest, load_meta_data) {
 	EXPECT_EQ(true, tmp3.CheckWhichPage(5));
 }
 
-TEST_F (DBFileHeapTest, check_add) {
+TEST_F (HeapDBFileTest, check_add) {
 	DeleteFiles();
 	int cnt = 0;
 	Record aop;
@@ -158,14 +158,14 @@ TEST_F (DBFileHeapTest, check_add) {
 	EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
 }
 
-TEST_F (DBFileHeapTest, check_empty_get_next) {
+TEST_F (HeapDBFileTest, check_empty_get_next) {
 	DeleteFiles ();
 	tmp.Create(fileName, heap, startUp);
 	EXPECT_EQ(false, tmp.GetNext(tmpRecord));
 }
 
 
-TEST_F (DBFileHeapTest, check_move_first) {
+TEST_F (HeapDBFileTest, check_move_first) {
 	DeleteFiles();
 	
 	tmp.Create(fileName, heap, startUp);
@@ -181,7 +181,7 @@ TEST_F (DBFileHeapTest, check_move_first) {
 	
 }
 
-TEST_F (DBFileHeapTest, check_load_and_get_next) {
+TEST_F (HeapDBFileTest, check_load_and_get_next) {
 	int cnt = 0;
 	stringstream aop_buffer;
 
@@ -200,7 +200,7 @@ TEST_F (DBFileHeapTest, check_load_and_get_next) {
 	EXPECT_EQ(10,cnt);
 }
 
-TEST_F (DBFileHeapTest, check_close_return) {
+TEST_F (HeapDBFileTest, check_close_return) {
 	DBFile tmp2;
 	DeleteFiles ();
 	tmp.Create(fileName, heap, startUp);

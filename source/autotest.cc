@@ -65,7 +65,7 @@ void AutoTest::test1 () {
 	cout << " tpch file will be loaded from " << tbl_path << endl;
 
 	dbfile.Load (*(rel->schema ()), tbl_path);
-	tblcnts[findx-1] = dbfile.totalRecords;
+	tblcnts[findx-1] = dbfile.TotalRecords();
 
 	if(!dbfile.Close ()) {
 		cout << "Error! Failed to close table number : "
