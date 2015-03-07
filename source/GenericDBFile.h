@@ -31,6 +31,7 @@ public:
 	int WriteGenMetaFile (ofstream &metaFile);
 	int ReadGenMetaFile (ifstream &metaFile);
 	GenericDBFile();
+	~GenericDBFile();
 	virtual int Create (char *fpath, fType file_type, void *startup) = 0;
 	virtual int Open (char *fpath) = 0;
 	int Close ();
@@ -45,21 +46,5 @@ public:
 	bool CheckFileType (fType checkFileType);
 	bool CheckWhichPage(int checkWP);
 	bool CheckFileLength(int checkFL);
-};
-
-class HeapDBFile : public GenericDBFile {
-protected:
-	int WriteMetaFile (ofstream &metaFile);
-	int ReadMetaFile (ifstream &metaFile);
-public:
-
-	HeapDBFile ();
-	int Create (char *fpath, fType file_type, void *startup);
-	int Open (char *fpath);
-	void Load (Schema &myschema, char *loadpath);
-	void MoveFirst ();
-	void Add (Record &addme);
-	int GetNext (Record &fetchme);
-	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
 };
 #endif

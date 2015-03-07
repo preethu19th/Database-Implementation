@@ -13,6 +13,7 @@
 using namespace std;
 
 #include "GenericDBFile.h"
+#include "HeapDBFile.h"
 #include "DBFile.h"
 
 DBFile::DBFile () {
@@ -72,9 +73,12 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
 	if(f_type == heap) {
 		HeapDBFile *hFile = new HeapDBFile();
 		int retVal = hFile->Create(f_path,f_type,startup);
-		assignedVar = true;
-		if(!retVal) { return retVal;}
+		if(!retVal) { 
+			delete hFile;
+			return retVal;
+		}
 		myInternalVar = (GenericDBFile*) hFile;
+		assignedVar = true;
 	}
 	
 	return WriteMetaFile ();
@@ -124,12 +128,15 @@ int DBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
 bool DBFile::CheckFileType (fType checkFileType) {
 	myInternalVar->CheckFileType(checkFileType);
 }
+
 bool DBFile::CheckWhichPage(int checkWP) {
 	myInternalVar->CheckWhichPage(checkWP);
 }
+
 bool DBFile::CheckFileLength(int checkFL) {
 	myInternalVar->CheckFileLength(checkFL);
 }
+
 int DBFile::TotalRecords() {
 	return myInternalVar->totalRecords;
 }
