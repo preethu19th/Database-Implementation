@@ -148,6 +148,21 @@ std::istream& operator>>(std::istream& is, OrderMaker& om)
     return is;
 }
 
+bool OrderMaker :: HasOrderedQueryCols (OrderMaker &queryOrderMaker)
+{
+    bool ret = true;
+	
+    for (int i = 0; i < numAtts && ret; i++) {
+        bool jRet = false;
+	for(int j = 0;
+            j< queryOrderMaker.numAtts && !jRet;
+            j++) {
+	    jRet = queryOrderMaker.whichAtts[j] ==  whichAtts[i];
+	}
+	ret = jRet;
+    }	
+    return ret;
+}
 
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right)
 {

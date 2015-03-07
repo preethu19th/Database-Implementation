@@ -4,7 +4,6 @@
 #include "BigQ.h"
 #include "gtest/gtest.h"
 #include "Schema.h"
-#include <ctime>
 
 class BigQTest : public ::testing::Test
 {
@@ -15,25 +14,13 @@ protected:
     static void SetUpTestCase()
     {
         setup();
-        SetOrderMaker(lLNOrd,li->schema(),const_cast<char*>("(l_linenumber)"));
-        SetOrderMaker(nNameOrd,n->schema(),const_cast<char*>("(n_name)"));
-        SetOrderMaker(nKeyOrd,n->schema(),const_cast<char*>("(n_nationkey)"));
-        SetOrderMaker(rNameOrd,r->schema(),const_cast<char*>("(r_name)"));
-        SetOrderMaker(rKeyOrd,r->schema(),const_cast<char*>("(r_regionkey)"));
-        SetOrderMaker(sAddOrd,s->schema(),const_cast<char*>("(s_address)"));
-        SetOrderMaker(sKeyOrd,s->schema(),const_cast<char*>("(s_suppkey)"));
-    }
-    static void SetOrderMaker(OrderMaker &o, Schema *s,char * ipcnf)
-    {
-        YY_BUFFER_STATE buffer = yy_scan_string(ipcnf);
-        yyparse();
-        yy_delete_buffer(buffer);
-        Record literal;
-        CNF sort_pred;
-        sort_pred.GrowFromParseTree (final, s, literal);
-
-        OrderMaker dummy;
-        sort_pred.GetSortOrders (o, dummy);
+	li->get_sort_order(lLNOrd,"(l_linenumber)");
+        n->get_sort_order(nNameOrd,"(n_name)");
+        n->get_sort_order(nKeyOrd,"(n_nationkey)");
+        r->get_sort_order(rNameOrd,"(r_name)");
+        r->get_sort_order(rKeyOrd,"(r_regionkey)");
+        s->get_sort_order(sAddOrd,"(s_address)");
+        s->get_sort_order(sKeyOrd,"(s_suppkey)");
     }
 
 };

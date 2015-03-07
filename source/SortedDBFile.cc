@@ -75,6 +75,7 @@ void SortedDBFile::Load (Schema &f_schema, char *loadpath)
 
 int SortedDBFile::Open (char *f_path)
 {
+    readmode = true;
     filePath = f_path;
     file.Open (1, f_path);
     return 1;

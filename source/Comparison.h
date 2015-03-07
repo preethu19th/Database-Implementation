@@ -66,6 +66,9 @@ public:
 
     // print to the screen
     void Print ();
+
+    //check all columns of ordermaker is present in query
+    bool HasOrderedQueryCols (OrderMaker &queryOrderMaker);
 };
 
 class Record;
