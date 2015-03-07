@@ -73,6 +73,17 @@ void HeapDBFile::Add (Record &rec) {
 	}
 }
 
+int HeapDBFile::Close () {
+	if(totalRecords > 0) {
+		off_t curLen;
+		file.AddPage(&currPage, whichPage);
+		whichPage++;
+		currPage.EmptyItOut();
+	}
+
+	return file.Close();
+}
+
 int HeapDBFile::GetNext (Record &fetchme) {
 	if(currPage.GetFirst(&fetchme)){
 		readRecsOffPage++;
@@ -90,9 +101,8 @@ int HeapDBFile::GetNext (Record &fetchme) {
 }
 
 int HeapDBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
-	ComparisonEngine comp;
 	while(GetNext(fetchme)) {
-		if(comp.Compare (&fetchme, &literal, &cnf)) {
+		if(ceng.Compare (&fetchme, &literal, &cnf)) {
 			return 1;
 		}
 	}

@@ -9,8 +9,6 @@ void *workerThread(void *temp) {
 	bigQ->StartProcessing();
 }
 
-BigQ::BigQ() {
-}
 
 BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen, bool seqrun) {
 	seqRun =seqrun;
@@ -22,7 +20,6 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen, bool seqru
 	inPipe = &in;
 	outPipe = &out;
 	sortOrder = &sortorder;
-	tmpFile.Open(0, "temp_bigQfile");
 	if(!seqRun) pthread_create(&wthread, NULL, &workerThread, (void *)this);
 }
 
@@ -33,13 +30,12 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen) {
 BigQ::~BigQ () {
 	if(!seqRun) 
 		pthread_join (wthread, NULL);
-	tmpFile.Close();
-	remove("temp_bigQfile");
 }
 
 void BigQ :: StartProcessing(void) {
 	Record *currRec = new Record();
 
+	tmpFile.Open(0, "temp_bigQfile");
 	int currRunPageLen = runLen;
 	bool is_terminated = !inPipe->Remove(currRec);
 	while(!is_terminated) {
@@ -103,6 +99,8 @@ void BigQ :: StartProcessing(void) {
 	delete []R;
 	delete []currPageInRun;
 	delete []isRunCompleted;
+	tmpFile.Close();
+	remove("temp_bigQfile");
 }
 
 void BigQ :: pushPQ (Record *r) {

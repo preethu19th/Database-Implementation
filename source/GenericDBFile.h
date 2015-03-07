@@ -24,6 +24,7 @@ protected:
 	fType fileType;
 	Page currPage;
 	File file;
+	ComparisonEngine ceng;
 public:
 	int totalRecords;
 	virtual int WriteMetaFile (ofstream &metaFile) = 0;
@@ -34,7 +35,7 @@ public:
 	~GenericDBFile();
 	virtual int Create (char *fpath, fType file_type, void *startup) = 0;
 	virtual int Open (char *fpath) = 0;
-	int Close ();
+	virtual int Close () =0;
 
 	virtual void Load (Schema &myschema, char *loadpath) = 0;
 
@@ -46,5 +47,6 @@ public:
 	bool CheckFileType (fType checkFileType);
 	bool CheckWhichPage(int checkWP);
 	bool CheckFileLength(int checkFL);
+	void CopyMetaData (GenericDBFile *copyTo);
 };
 #endif

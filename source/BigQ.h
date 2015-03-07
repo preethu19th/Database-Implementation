@@ -44,7 +44,6 @@ class BigQ {
 public:
 	int readFromPipe;
 	int writeToPipe;
-	BigQ();
 	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen);
 	BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen,bool seqrun);
 	~BigQ ();

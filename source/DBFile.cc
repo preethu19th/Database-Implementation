@@ -60,6 +60,12 @@ inline int DBFile::ReadMetaFile () {
 		myInternalVar = (GenericDBFile*) hFile;
 		assignedVar = true;
 	}
+	if(fileType == sorted) {
+		SortedDBFile *sFile = new SortedDBFile();
+		myInternalVar = (GenericDBFile*) sFile;
+		assignedVar = true;
+	}
+
 	int retVal = myInternalVar->ReadMetaFile(metaFile);
 	metaFile.close();
 	return retVal;

@@ -1,4 +1,3 @@
-
 #include "TwoWayList.h"
 #include "Record.h"
 #include "Schema.h"
@@ -7,6 +6,7 @@
 #include "Comparison.h"
 #include "ComparisonEngine.h"
 #include "GenericDBFile.h"
+#include "HeapDBFile.h"
 #include "SortedDBFile.h"
 #include <iostream>
 #include <string>
@@ -20,8 +20,8 @@ SortedDBFile::SortedDBFile () {
 	whichPage = 0;
 	readRecsOffPage = 0;
 	totalRecords = 0;
-	inPipe = new Pipe(100);
-	outPipe = new Pipe(100);
+	inPipe = NULL;
+	outPipe = NULL;
 	readmode = true;
 }
 
@@ -55,7 +55,6 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
         SortInfo si = *((SortInfo *)startup);
         runLen = si.runLength;
         om = *(OrderMaker *)si.myOrder;
-	bigQ = new BigQ(*inPipe, *outPipe, om, runLen);
 	file.Open (0, f_path);
 	return 1;
 }
@@ -76,6 +75,7 @@ int SortedDBFile::Open (char *f_path) {
 }
 
 void SortedDBFile::MoveFirst () {
+	if(!readmode) { SwitchOnReadMode(); }
 	if(whichPage != 0 ) {
 		whichPage = 0;
 		file.GetPage(&currPage,whichPage);
@@ -83,22 +83,77 @@ void SortedDBFile::MoveFirst () {
 	}
 }
 
+void * BigQueueThread(void * vargs) {
+	SortedThreadArgs *sargs = (SortedThreadArgs *) vargs;
+	new BigQ(*sargs->inPipe, *sargs->outPipe,
+			       *sargs->om, sargs->runLen);
+}
+
 void SortedDBFile::Add (Record &rec) {
+	if(inPipe == NULL) {
+		inPipe = new Pipe(100);
+		outPipe = new Pipe(100);
+		SortedThreadArgs *sargs = new SortedThreadArgs();
+		sargs->inPipe = inPipe;
+		sargs->outPipe = outPipe;
+		sargs->om = &om;
+		sargs->runLen = runLen;
+		pthread_create(&sthread, NULL, &BigQueueThread, (void*) sargs);
+	}
 	readmode = false;
 	totalRecords++;
 	inPipe->Insert (&rec);
 }
 
+int SortedDBFile::Close () {
+	if(!readmode) { SwitchOnReadMode(); }
+	return file.Close();
+}
+
 void SortedDBFile::SwitchOnReadMode () {
 	int ret1, ret2;
 	readmode = true;
+	inPipe->ShutDown ();
+	HeapDBFile *hFile = new HeapDBFile();
+	string tempFilePath (filePath);
+	tempFilePath.append(".temp");
+	hFile->Create((char*)tempFilePath.c_str(), heap, NULL);
 	Record R[2];
 	MoveFirst();
-
 	ret1 = GetNext(R[0]);
+	ret2 = outPipe->Remove(R + 1);
+	while(ret1 || ret2) {
+		if(ret1 && ret2) {
+			if (ceng.Compare (R, R + 1, &om) < 0) {
+				hFile->Add(R[0]);
+				ret1 = GetNext(R[0]);
+			} else {
+				hFile->Add(R[1]);
+				ret2 = outPipe->Remove(R + 1);
+			}
+		} else if (ret1) {
+			hFile->Add(R[0]);
+			ret1 = GetNext(R[0]);
+		} else if (ret2) {
+			hFile->Add(R[1]);
+			ret2 = outPipe->Remove(R + 1);
+		}
+	}
+	hFile->CopyMetaData((GenericDBFile*)this);
+	hFile->Close();
+	this->Close();
+	remove(filePath.c_str());
+	rename(tempFilePath.c_str(), filePath.c_str());
+	delete inPipe;
+	delete outPipe;
+	inPipe = NULL;
+	outPipe = NULL;
+	pthread_join(sthread, NULL);
+	this->Open((char*)filePath.c_str());
 }
 
 int SortedDBFile::GetNext (Record &fetchme) {
+	if(!readmode) { SwitchOnReadMode(); }
 	if(currPage.GetFirst(&fetchme)){
 		readRecsOffPage++;
 		return 1;
@@ -115,9 +170,10 @@ int SortedDBFile::GetNext (Record &fetchme) {
 }
 
 int SortedDBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal) {
-	ComparisonEngine comp;
+	if(!readmode) { SwitchOnReadMode(); }
+	//if cnf does not have ordered column this code is as is.
 	while(GetNext(fetchme)) {
-		if(comp.Compare (&fetchme, &literal, &cnf)) {
+		if(ceng.Compare (&fetchme, &literal, &cnf)) {
 			return 1;
 		}
 	}

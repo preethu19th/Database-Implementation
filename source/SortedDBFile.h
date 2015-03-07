@@ -17,6 +17,14 @@
 
 using namespace std;
 
+
+struct SortedThreadArgs {
+	Pipe *inPipe, *outPipe;
+	OrderMaker *om;
+	BigQ *bigQ;
+	int runLen;
+};
+
 class SortedDBFile : public GenericDBFile {
 protected:
 	int WriteMetaFile (ofstream &metaFile);
@@ -25,12 +33,13 @@ public:
 
 	SortedDBFile ();
 	OrderMaker om;
+	pthread_t sthread;
 	int runLen;
 	Pipe *inPipe, *outPipe;
-	BigQ *bigQ;
 	bool readmode;
 	int Create (char *fpath, fType file_type, void *startup);
 	int Open (char *fpath);
+	int Close ();
 	void Load (Schema &myschema, char *loadpath);
 	void MoveFirst ();
 	void Add (Record &addme);

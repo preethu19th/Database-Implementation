@@ -25,25 +25,19 @@ GenericDBFile::~GenericDBFile() {
 int GenericDBFile::WriteGenMetaFile (ofstream &metaFile) {
 	metaFile << fileType << endl;
 	metaFile << whichPage << endl;
-	metaFile << readRecsOffPage << endl;
 	metaFile << totalRecords << endl;
+	return 1;
 }
 
 int GenericDBFile::ReadGenMetaFile (ifstream &metaFile) {
 	metaFile >> whichPage;
-	metaFile >> readRecsOffPage;
 	metaFile >> totalRecords;
+	return 1;
 }
 
-int GenericDBFile::Close (){
-	if(totalRecords > 0) {
-		off_t curLen;
-		file.AddPage(&currPage, whichPage);
-		whichPage++;
-		currPage.EmptyItOut();
-	}
-
-	return file.Close();
+void GenericDBFile::CopyMetaData (GenericDBFile *copyTo) {
+	copyTo->whichPage = whichPage;
+	copyTo->totalRecords = totalRecords;
 }
 
 bool GenericDBFile::CheckFileType (fType checkFileType) {
