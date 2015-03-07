@@ -2,21 +2,22 @@
  * SECTION 1
  ***********************************************************************/
 /* The code in %{ %} is included as it is in lex.yy.c file
- * it has C global variables, prototypes, and comments 
+ * it has C global variables, prototypes, and comments
  */
 
 
-%{
+% {
 
 #include <string.h> // For strdup()
 #include <stdlib.h> // For malloc()
 #include "ParseTree.h"
 #include "y.tab.h"
 
-int lineno = 1;
-void yyerror(char*s);
+    int lineno = 1;
+    void yyerror(char*s);
 
-%}
+    %
+}
 
 
 /******************************************************************************
@@ -37,43 +38,52 @@ void yyerror(char*s);
 
 "("			return('(');
 
-")"    	        	return(')');
+")"
+return(')');
 
-">="			return('g');
+">="
+return('g');
 
-"<="			return('l');
+"<="
+return('l');
 
-"<"    		      	return('<');
+"<"
+return('<');
 
-">"    		 	return('>');
+">"
+return('>');
 
-"=" 			return('=');
+"="
+return('=');
 
 -?[0-9]+ 	       {yylval.actualChars = strdup(yytext);
-  			return(Int); 
-		        }
+    return(Int);
+}
 
--?[0-9]+\.[0-9]*       {yylval.actualChars = strdup(yytext); 
-  			return(Float);
-			}
+-?[0-9]+\.[0-9]*       {yylval.actualChars = strdup(yytext);
+    return(Float);
+}
 
 "OR"      		return(OR);
 
-"AND"			return(AND);
+"AND"
+return(AND);
 
 \'[^'\n]*\' 	       {/* take care of ' in a string */
-	 		if (yytext[yyleng - 2] == '\\') {
-     				yymore();
-   			} else {
-				yylval.actualChars = strdup(yytext + 1);	
-				yylval.actualChars[strlen(yylval.actualChars) - 1] = 0;
-     				return(String);
-   			}
-			}
+if (yytext[yyleng - 2] == '\\')
+{
+    yymore();
+} else
+{
+    yylval.actualChars = strdup(yytext + 1);
+    yylval.actualChars[strlen(yylval.actualChars) - 1] = 0;
+    return(String);
+}
+}
 
 [A-Za-z][A-Za-z0-9_-]* {yylval.actualChars = strdup(yytext);
-  			return(Name);
-			}     
+    return(Name);
+}
 
 \n                	lineno++;
 
@@ -83,12 +93,14 @@ void yyerror(char*s);
 
 %%
 
-void yyerror(char *s) {
-  printf("%d: %s at %s\n", lineno, s, yytext);
+void yyerror(char *s)
+{
+    printf("%d: %s at %s\n", lineno, s, yytext);
 }
 
-int yywrap(void){
-  return 1;
+int yywrap(void)
+{
+    return 1;
 }
 
 

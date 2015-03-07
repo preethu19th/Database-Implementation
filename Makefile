@@ -144,7 +144,7 @@ autotest: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFil
 bigq_unittest.o : source/BigQ_unittest.cc $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/BigQ_unittest.cc -o bin/bigq_unittest.o
 
-unittests : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o GenericDBFile.o HeapDBFile.o heapdbfile_unittest.o bigq_unittest.o gtest_main.a
-	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o  bin/heapdbfile_unittest.o bin/bigq_unittest.o bin/gtest_main.a -o bin/unittests
+unittests : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o GenericDBFile.o HeapDBFile.o SortedDBFile.o heapdbfile_unittest.o bigq_unittest.o gtest_main.a
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o  bin/heapdbfile_unittest.o bin/bigq_unittest.o bin/gtest_main.a -o bin/unittests
 	./bin/unittests
 
