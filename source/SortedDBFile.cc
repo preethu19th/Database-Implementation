@@ -85,6 +85,17 @@ void SortedDBFile::MoveFirst () {
 
 void SortedDBFile::Add (Record &rec) {
 	readmode = false;
+	totalRecords++;
+	inPipe->Insert (&rec);
+}
+
+void SortedDBFile::SwitchOnReadMode () {
+	int ret1, ret2;
+	readmode = true;
+	Record R[2];
+	MoveFirst();
+
+	ret1 = GetNext(R[0]);
 }
 
 int SortedDBFile::GetNext (Record &fetchme) {
