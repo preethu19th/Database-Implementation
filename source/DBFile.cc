@@ -14,6 +14,7 @@ using namespace std;
 
 #include "GenericDBFile.h"
 #include "HeapDBFile.h"
+#include "SortedDBFile.h"
 #include "DBFile.h"
 
 DBFile::DBFile () {
@@ -81,6 +82,17 @@ int DBFile::Create (char *f_path, fType f_type, void *startup) {
 		assignedVar = true;
 	}
 	
+	if(f_type == sorted) {
+		SortedDBFile *sFile = new SortedDBFile();
+		int retVal = sFile->Create(f_path,f_type,startup);
+		if(!retVal) {
+			delete sFile;
+			return retVal;
+		}
+		myInternalVar = (GenericDBFile*) sFile;
+		assignedVar = true;
+	}
+
 	return WriteMetaFile ();
 }
 

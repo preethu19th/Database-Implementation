@@ -5,6 +5,8 @@
 #include "Record.h"
 #include "Schema.h"
 #include "File.h"
+#include "BigQ.h"
+#include "Pipe.h"
 #include "Defs.h"
 #include "Comparison.h"
 #include "ComparisonEngine.h"
@@ -22,6 +24,11 @@ protected:
 public:
 
 	SortedDBFile ();
+	OrderMaker om;
+	int runLen;
+	Pipe *inPipe, *outPipe;
+	BigQ *bigQ;
+	bool readmode;
 	int Create (char *fpath, fType file_type, void *startup);
 	int Open (char *fpath);
 	void Load (Schema &myschema, char *loadpath);
@@ -30,4 +37,5 @@ public:
 	int GetNext (Record &fetchme);
 	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
 };
+
 #endif

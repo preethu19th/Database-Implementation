@@ -68,6 +68,9 @@ a1-test.a: source/a1-test.cc
 a2-test.a: source/a2-test.cc
 	$(CC) -g -c source/a2-test.cc -o bin/a2-test.o
 
+a2-2test.a: source/a2-2test.cc
+	$(CC) -g -c source/a2-2test.cc -o bin/a2-2test.o
+
 main.o: source/main.cc
 	$(CC) -g -c source/main.cc -o bin/main.o
 	
@@ -82,6 +85,9 @@ DBFile.o: source/DBFile.cc
 
 HeapDBFile.o: source/HeapDBFile.cc
 	$(CC) -g -c source/HeapDBFile.cc -o bin/HeapDBFile.o
+
+SortedDBFile.o: source/SortedDBFile.cc
+	$(CC) -g -c source/SortedDBFile.cc -o bin/SortedDBFile.o
 
 GenericDBFile.o: source/GenericDBFile.cc
 	$(CC) -g -c source/GenericDBFile.cc -o bin/GenericDBFile.o

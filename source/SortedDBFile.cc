@@ -11,6 +11,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include "SortInfo.h"
 
 using namespace std;
 
@@ -19,14 +20,29 @@ SortedDBFile::SortedDBFile () {
 	whichPage = 0;
 	readRecsOffPage = 0;
 	totalRecords = 0;
+	inPipe = new Pipe(100);
+	outPipe = new Pipe(100);
+	readmode = true;
 }
 
 int SortedDBFile::WriteMetaFile (ofstream &metaFile) {
-	return WriteGenMetaFile(metaFile);
+	int ret =  WriteGenMetaFile(metaFile);
+	if (ret) {
+		metaFile << runLen <<endl;
+		metaFile << om;
+	}
+
+	return ret;
 }
 
 int SortedDBFile::ReadMetaFile (ifstream &metaFile) {
-	return ReadGenMetaFile(metaFile);
+	int ret =  ReadGenMetaFile(metaFile);
+	if (ret) {
+		metaFile >> runLen;
+		metaFile >> om;
+	}
+
+	return  ret;
 }
 
 int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
@@ -36,6 +52,10 @@ int SortedDBFile::Create (char *f_path, fType f_type, void *startup) {
 		return 0;
 	}
 
+        SortInfo si = *((SortInfo *)startup);
+        runLen = si.runLength;
+        om = *(OrderMaker *)si.myOrder;
+	bigQ = new BigQ(*inPipe, *outPipe, om, runLen);
 	file.Open (0, f_path);
 	return 1;
 }
@@ -64,6 +84,7 @@ void SortedDBFile::MoveFirst () {
 }
 
 void SortedDBFile::Add (Record &rec) {
+	readmode = false;
 }
 
 int SortedDBFile::GetNext (Record &fetchme) {

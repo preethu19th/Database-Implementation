@@ -121,6 +121,28 @@ void OrderMaker :: Print () {
 	}
 }
 
+std::ostream& operator<<(std::ostream& os, const OrderMaker& om)
+{
+	os << om.numAtts << endl;
+	for (int i = 0; i < om.numAtts; i++) {
+		os << om.whichAtts[i] << " ";
+		os << om.whichTypes[i] << endl;
+	}
+
+	return os;
+}
+
+std::istream& operator>>(std::istream& is, OrderMaker& om) {
+	is >> om.numAtts;
+	for (int i = 0; i < om.numAtts; i++) {
+          is >> om.whichAtts[i];
+          int t;
+          is >> t;
+          om.whichTypes[i] = (Type)t;
+        }
+
+        return is;
+}
 
 
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right) {
