@@ -26,6 +26,7 @@ protected:
     Page currPage;
     File file;
     ComparisonEngine ceng;
+    void ResetVals();
 public:
     int totalRecords;
     virtual int WriteMetaFile (ofstream &metaFile) = 0;

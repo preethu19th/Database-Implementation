@@ -34,6 +34,7 @@ int HeapDBFile::ReadMetaFile (ifstream &metaFile)
 
 int HeapDBFile::Create (char *f_path, fType f_type, void *startup)
 {
+    ResetVals ();
     filePath = f_path;
     if(fileType != f_type) {
         cout<< "Mismatch type\n";

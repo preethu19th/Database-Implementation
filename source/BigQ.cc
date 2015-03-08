@@ -22,7 +22,10 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen, bool seqru
     inPipe = &in;
     outPipe = &out;
     sortOrder = &sortorder;
-    if(!seqRun) pthread_create(&wthread, NULL, &workerThread, (void *)this);
+    if(!seqRun) {
+        pthread_create(&wthread, NULL, &workerThread, (void *)this);
+        pthread_join (wthread, NULL);
+    }
 }
 
 BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen)
@@ -32,8 +35,6 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen)
 
 BigQ::~BigQ ()
 {
-    if(!seqRun)
-        pthread_join (wthread, NULL);
 }
 
 void BigQ :: StartProcessing(void)
@@ -101,13 +102,13 @@ void BigQ :: StartProcessing(void)
         }
     }
 
-    outPipe->ShutDown ();
     delete []P;
     delete []R;
     delete []currPageInRun;
     delete []isRunCompleted;
     tmpFile.Close();
     remove("temp_bigQfile");
+    outPipe->ShutDown ();
 }
 
 void BigQ :: pushPQ (Record *r)

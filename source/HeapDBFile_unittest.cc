@@ -22,9 +22,7 @@ protected:
     static ifstream lineItemsOp;
     static stringstream eop_buffer;
     static Record tmpRecord;
-    static Schema mySchema;
     static char *loadFileName;
-    static streambuf *sbuf;
 
 
     inline bool FileExists (const std::string& name)
@@ -50,19 +48,20 @@ protected:
 
     static void SetUpTestCase()
     {
+        setup();
         eop_buffer << lineItemsOp.rdbuf();
         lineItemsOp.close();
     }
+    static void TearDownTestCase() {
+        cleanup ();
+    }
 };
 
-DBFile HeapDBFileTest::tmp;
+DBFile HeapDBFileTest :: tmp;
 ifstream HeapDBFileTest::lineItemsOp("static_test_data/li_op.txt");
 stringstream HeapDBFileTest::eop_buffer;
 Record HeapDBFileTest::tmpRecord;
-Schema HeapDBFileTest::mySchema("catalog", "lineitem");
 char* HeapDBFileTest::loadFileName = "static_test_data/li.tbl";
-streambuf* HeapDBFileTest::sbuf = cout.rdbuf();
-
 
 char* HeapDBFileTest::fileName = "test_data/test_create";
 char* HeapDBFileTest::fileName2 = "test_data/test_create2";
@@ -71,8 +70,7 @@ char* HeapDBFileTest::metaFileName = "test_data/test_create.metadata";
 
 TEST_F  (HeapDBFileTest, check_empty_filename)
 {
-    char *emptyFileName ="";
-    EXPECT_EQ(false,tmp.Create(emptyFileName, heap,startUp));
+    EXPECT_EQ(false,tmp.Create("", heap,startUp));
     EXPECT_EQ(false,tmp.Create(NULL, heap,startUp));
 }
 
@@ -82,11 +80,11 @@ TEST_F (HeapDBFileTest, create_heap_file)
     EXPECT_EQ(true, tmp.Create(fileName, heap, startUp));
     EXPECT_EQ(true, FileExists(fileName));
     EXPECT_EQ(true, FileExists(metaFileName));
+    tmp.Close();
 }
 
 TEST_F (HeapDBFileTest, create_meta_file)
 {
-
     DeleteFiles ();
     tmp.Create(fileName, heap, startUp);
 
@@ -104,6 +102,7 @@ TEST_F (HeapDBFileTest, create_meta_file)
     EXPECT_EQ("0", whichPage);
     EXPECT_EQ(true, tmp.CheckFileLength(0));
     EXPECT_EQ(true, FileExists(metaFileName));
+    tmp.Close();
 }
 
 TEST_F (HeapDBFileTest, open)
@@ -113,6 +112,7 @@ TEST_F (HeapDBFileTest, open)
     EXPECT_EQ(true, tmp2.Create(fileName, heap, startUp));
     EXPECT_EQ(true, tmp2.Open(fileName));
     EXPECT_EQ(true, tmp2.CheckFileType(heap));
+    tmp2.Close();
 }
 
 TEST_F (HeapDBFileTest, load_meta_data)
@@ -136,6 +136,7 @@ TEST_F (HeapDBFileTest, load_meta_data)
     tmp3.Open(fileName1);
     EXPECT_EQ(true, tmp3.CheckFileType(heap));
     EXPECT_EQ(true, tmp3.CheckWhichPage(5));
+    tmp3.Close();
 }
 
 TEST_F (HeapDBFileTest, check_add)
@@ -149,11 +150,11 @@ TEST_F (HeapDBFileTest, check_add)
     tmp.Create(fileName, heap, startUp);
 
     SetCoutBuffer(&aop_buffer);
-    while (tmpRecord.SuckNextRecord (&mySchema, tableFile) == 1) {
+    while (tmpRecord.SuckNextRecord (li->schema (), tableFile) == 1) {
         cnt++;
         tmp.Add(tmpRecord);
         tmp.GetNext(aop);
-        aop.Print (&mySchema);
+        aop.Print (li->schema ());
     }
     ResetCoutBuffer();
     EXPECT_EQ(false, tmp.GetNext(tmpRecord));
@@ -161,6 +162,7 @@ TEST_F (HeapDBFileTest, check_add)
     fclose(tableFile);
     EXPECT_EQ(10,cnt);
     EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
+    tmp.Close();
 }
 
 TEST_F (HeapDBFileTest, check_empty_get_next)
@@ -168,6 +170,7 @@ TEST_F (HeapDBFileTest, check_empty_get_next)
     DeleteFiles ();
     tmp.Create(fileName, heap, startUp);
     EXPECT_EQ(false, tmp.GetNext(tmpRecord));
+    tmp.Close();
 }
 
 
@@ -180,11 +183,12 @@ TEST_F (HeapDBFileTest, check_move_first)
     tmp.MoveFirst();
     EXPECT_EQ(true, tmp.CheckWhichPage(0));
     for(int i =0; i<10000; i++) {
-        tmp.Load(mySchema, loadFileName);
+        tmp.Load(*li->schema (), loadFileName);
     }
     EXPECT_EQ(false, tmp.CheckWhichPage(0));
     tmp.MoveFirst();
     EXPECT_EQ(true, tmp.CheckWhichPage(1));
+    tmp.Close();
 
 }
 
@@ -195,17 +199,18 @@ TEST_F (HeapDBFileTest, check_load_and_get_next)
 
     DeleteFiles ();
     tmp.Create(fileName, heap, startUp);
-    tmp.Load(mySchema, loadFileName);
+    tmp.Load(*li->schema (), loadFileName);
 
     SetCoutBuffer(&aop_buffer);
     while (tmp.GetNext(tmpRecord) == 1) {
         cnt++;
-        tmpRecord.Print (&mySchema);
+        tmpRecord.Print (li->schema ());
     }
     ResetCoutBuffer();
 
     EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
     EXPECT_EQ(10,cnt);
+    tmp.Close();
 }
 
 TEST_F (HeapDBFileTest, check_close_return)
@@ -213,8 +218,8 @@ TEST_F (HeapDBFileTest, check_close_return)
     DBFile tmp2;
     DeleteFiles ();
     tmp.Create(fileName, heap, startUp);
-    tmp.Load(mySchema, loadFileName);
+    tmp.Load(*li->schema (), loadFileName);
     tmp2.Create(fileName2, heap, startUp);
-    tmp2.Load(mySchema, loadFileName);
+    tmp2.Load(*li->schema (), loadFileName);
     EXPECT_EQ(tmp.Close(), tmp2.Close());
 }

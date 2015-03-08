@@ -19,12 +19,9 @@ using namespace std;
 
 DBFile::DBFile ()
 {
-    assignedVar = false;
 }
 DBFile::~DBFile ()
 {
-    if(assignedVar) delete myInternalVar;
-
 }
 
 inline bool DBFile::InvalidFileName(char *f_path)
@@ -61,14 +58,10 @@ inline int DBFile::ReadMetaFile ()
     metaFile >> intFileType;
     fileType = (fType) intFileType;
     if(fileType == heap) {
-        HeapDBFile *hFile = new HeapDBFile();
         myInternalVar = (GenericDBFile*) hFile;
-        assignedVar = true;
     }
     if(fileType == sorted) {
-        SortedDBFile *sFile = new SortedDBFile();
         myInternalVar = (GenericDBFile*) sFile;
-        assignedVar = true;
     }
 
     int retVal = myInternalVar->ReadMetaFile(metaFile);
@@ -82,30 +75,24 @@ int DBFile::Create (char *f_path, fType f_type, void *startup)
         cout << "Error: Invalid file name!\n";
         return 0;
     }
+    fileType = f_type;
     filePath = f_path;
+    hFile = new HeapDBFile();
+    sFile = new SortedDBFile();
     if(f_type == heap) {
-        HeapDBFile *hFile = new HeapDBFile();
-        int retVal = hFile->Create(f_path,f_type,startup);
-        if(!retVal) {
-            delete hFile;
-            return retVal;
-        }
-        myInternalVar = (GenericDBFile*) hFile;
-        assignedVar = true;
+       myInternalVar = (GenericDBFile*) hFile;
     }
 
     if(f_type == sorted) {
-        SortedDBFile *sFile = new SortedDBFile();
-        int retVal = sFile->Create(f_path,f_type,startup);
-        if(!retVal) {
-            delete sFile;
-            return retVal;
-        }
         myInternalVar = (GenericDBFile*) sFile;
-        assignedVar = true;
     }
 
-    return WriteMetaFile ();
+    int retVal = myInternalVar->Create(f_path,f_type,startup);
+    if(retVal) {
+        retVal = WriteMetaFile ();
+    }
+
+    return retVal;
 }
 
 void DBFile::Load (Schema &f_schema, char *loadpath)
@@ -119,6 +106,8 @@ int DBFile::Open (char *f_path)
         cout << "Error: Invalid file name!\n";
         return 0;
     }
+    hFile = new HeapDBFile();
+    sFile = new SortedDBFile();
     filePath = f_path;
     if(ReadMetaFile()) {
         return myInternalVar->Open(f_path);
@@ -138,6 +127,8 @@ int DBFile::Close ()
     if(retVal) {
         retVal = WriteMetaFile();
     }
+    delete hFile;
+    delete sFile;
     return retVal;
 }
 

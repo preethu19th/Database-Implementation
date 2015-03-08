@@ -15,13 +15,18 @@ using namespace std;
 
 GenericDBFile::GenericDBFile()
 {
-    whichPage = 0;
-    readRecsOffPage = 0;
-    totalRecords = 0;
+    ResetVals ();
 }
 
 GenericDBFile::~GenericDBFile()
 {
+}
+
+void GenericDBFile :: ResetVals ()
+{
+    whichPage = 0;
+    readRecsOffPage = 0;
+    totalRecords = 0;
 }
 
 int GenericDBFile::WriteGenMetaFile (ofstream &metaFile)

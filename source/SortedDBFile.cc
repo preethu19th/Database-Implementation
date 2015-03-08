@@ -17,12 +17,15 @@ using namespace std;
 
 SortedDBFile::SortedDBFile ()
 {
+    ResetSVals ();
+}
+
+inline void SortedDBFile :: ResetSVals ()
+{
+    ResetVals ();
     fileType = sorted;
-    whichPage = 0;
-    readRecsOffPage = 0;
-    totalRecords = 0;
-    inPipe = NULL;
-    outPipe = NULL;
+    inPipe = NULL;                                                                                              
+    outPipe = NULL;                                                                                             
     readmode = true;
 }
 
@@ -50,6 +53,7 @@ int SortedDBFile::ReadMetaFile (ifstream &metaFile)
 
 int SortedDBFile::Create (char *f_path, fType f_type, void *startup)
 {
+    ResetSVals ();
     filePath = f_path;
     if(fileType != f_type) {
         cout<< "Mismatch type\n";
@@ -96,8 +100,10 @@ void SortedDBFile::MoveFirst ()
 void * BigQueueThread(void * vargs)
 {
     SortedThreadArgs *sargs = (SortedThreadArgs *) vargs;
-    new BigQ(*sargs->inPipe, *sargs->outPipe,
+    sargs->bigQ = new BigQ(*sargs->inPipe, *sargs->outPipe,
              *sargs->om, sargs->runLen);
+    
+    delete sargs->bigQ;
 }
 
 void SortedDBFile::Add (Record &rec)
@@ -105,7 +111,7 @@ void SortedDBFile::Add (Record &rec)
     if(inPipe == NULL) {
         inPipe = new Pipe(100);
         outPipe = new Pipe(100);
-        SortedThreadArgs *sargs = new SortedThreadArgs();
+        sargs = new SortedThreadArgs();
         sargs->inPipe = inPipe;
         sargs->outPipe = outPipe;
         sargs->om = &om;
@@ -161,8 +167,10 @@ void SortedDBFile::SwitchOnReadMode ()
     remove(filePath.c_str());
     rename(tempFilePath.c_str(), filePath.c_str());
     pthread_join(sthread, NULL);
+    delete hFile;
     delete inPipe;
     delete outPipe;
+    delete sargs;
     inPipe = NULL;
     outPipe = NULL;
     this->Open((char*)filePath.c_str());

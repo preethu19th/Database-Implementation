@@ -28,8 +28,10 @@ struct SortedThreadArgs {
 class SortedDBFile : public GenericDBFile
 {
 protected:
+    SortedThreadArgs *sargs;
     int WriteMetaFile (ofstream &metaFile);
     int ReadMetaFile (ifstream &metaFile);
+    inline void ResetSVals ();
 public:
 
     SortedDBFile ();

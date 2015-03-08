@@ -14,13 +14,16 @@ protected:
     static void SetUpTestCase()
     {
         setup();
-	li->get_sort_order(lLNOrd,"(l_linenumber)");
+        li->get_sort_order(lLNOrd,"(l_linenumber)");
         n->get_sort_order(nNameOrd,"(n_name)");
         n->get_sort_order(nKeyOrd,"(n_nationkey)");
         r->get_sort_order(rNameOrd,"(r_name)");
         r->get_sort_order(rKeyOrd,"(r_regionkey)");
         s->get_sort_order(sAddOrd,"(s_address)");
         s->get_sort_order(sKeyOrd,"(s_suppkey)");
+    }
+    static void TearDownTestCase() {
+        cleanup ();
     }
 
 };

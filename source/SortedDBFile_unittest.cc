@@ -23,7 +23,6 @@ protected:
     static stringstream eop_buffer;
     static Record tmpRecord;
     static char *loadFileName;
-    static streambuf *sbuf;
     static SortInfo *startUp;
 
 
@@ -59,6 +58,7 @@ protected:
         startUp->runLength = 10;
     }
     static void TearDownTestCase() {
+        cleanup ();
         delete startUp->myOrder;
         delete startUp;
         startUp = NULL;
@@ -70,8 +70,6 @@ ifstream SortedDBFileTest::lineItemsOp("static_test_data/li_sorted_op.txt");
 stringstream SortedDBFileTest::eop_buffer;
 Record SortedDBFileTest::tmpRecord;
 char* SortedDBFileTest::loadFileName = "static_test_data/li.tbl";
-streambuf* SortedDBFileTest::sbuf = cout.rdbuf();
-
 
 char* SortedDBFileTest::fileName = "test_data/test_create";
 char* SortedDBFileTest::fileName2 = "test_data/test_create2";
@@ -175,6 +173,7 @@ TEST_F (SortedDBFileTest, check_add)
     fclose(tableFile);
     EXPECT_EQ(10,cnt);
     EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
+    tmp.Close();
 }
 
 TEST_F (SortedDBFileTest, check_empty_get_next)
@@ -193,12 +192,13 @@ TEST_F (SortedDBFileTest, check_move_first)
     EXPECT_EQ(true, tmp.CheckWhichPage(0));
     tmp.MoveFirst();
     EXPECT_EQ(true, tmp.CheckWhichPage(0));
-    for(int i =0; i<10000; i++) {
+    for(int i = 0; i < 10000; i++) {
         tmp.Load(*li->schema (), loadFileName);
     }
     EXPECT_EQ(true, tmp.CheckWhichPage(0));
     tmp.MoveFirst();
     EXPECT_EQ(true, tmp.CheckWhichPage(1));
+    tmp.Close();
 }
 
 TEST_F (SortedDBFileTest, check_load_and_get_next)

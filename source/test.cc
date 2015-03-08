@@ -145,7 +145,6 @@ void SetCoutBuffer(stringstream *buf)
 void GetExpectedOp(stringstream *eop,char *expectedFile, Schema *s,int &eopcnt)
 {
 	Record temp;
-	cout<< expectedFile << endl;
 	FILE *tableFile = fopen (expectedFile, "r");
 	SetCoutBuffer(eop);
 	while (temp.SuckNextRecord (s, tableFile) == 1) {

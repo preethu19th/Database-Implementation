@@ -2,14 +2,17 @@
 #define DBFILE_H
 
 #include "GenericDBFile.h"
+#include "HeapDBFile.h"
+#include "SortedDBFile.h"
 
 class DBFile
 {
 private:
     string filePath;
-    bool assignedVar;
     fType fileType;
     GenericDBFile *myInternalVar;
+    HeapDBFile *hFile;
+    SortedDBFile *sFile;
     inline bool InvalidFileName(char *f_path);
 
     inline int WriteMetaFile ();

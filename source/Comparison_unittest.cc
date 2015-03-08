@@ -15,6 +15,9 @@ protected:
         setup ();
         n->get_sort_order (sortorder, sorder);
     }
+    static void TearDownTestCase() {
+        cleanup ();
+    }
 };
 
 OrderMaker ComparisonTest :: sortorder, ComparisonTest :: queryOrder;
