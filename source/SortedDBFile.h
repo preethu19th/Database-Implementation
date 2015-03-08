@@ -33,7 +33,7 @@ protected:
 public:
 
     SortedDBFile ();
-    OrderMaker om;
+    OrderMaker om, queryOrderMaker, dummy;
     pthread_t sthread;
     int runLen;
     Pipe *inPipe, *outPipe;

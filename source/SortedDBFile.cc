@@ -166,6 +166,7 @@ void SortedDBFile::SwitchOnReadMode ()
     outPipe = NULL;
     pthread_join(sthread, NULL);
     this->Open((char*)filePath.c_str());
+    MoveFirst ();
 }
 
 int SortedDBFile::GetNext (Record &fetchme)
@@ -193,10 +194,14 @@ int SortedDBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal)
     if(!readmode) {
         SwitchOnReadMode();
     }
-    //if cnf does not have ordered column this code is as is.
-    while(GetNext(fetchme)) {
-        if(ceng.Compare (&fetchme, &literal, &cnf)) {
-            return 1;
+	cnf.GetSortOrders (queryOrderMaker, dummy);
+    if(om.HasOrderedQueryCols(queryOrderMaker)) {
+        //binary search
+    } else {
+        while(GetNext(fetchme)) {
+            if(ceng.Compare (&fetchme, &literal, &cnf)) {
+                return 1;
+            }
         }
     }
     return 0;
