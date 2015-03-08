@@ -5,26 +5,26 @@
 #include "gtest/gtest.h"
 #include "Record.h"
 #include "Schema.h"
+#include "SortInfo.h"
 #include <fstream>
 #include <string>
 
 using namespace std;
 
-class HeapDBFileTest : public ::testing::Test
+class SortedDBFileTest : public ::testing::Test
 {
 protected:
 
     static DBFile tmp;
     static char* fileName;
     static char* fileName2;
-    static void* startUp;
     static char* metaFileName;
     static ifstream lineItemsOp;
     static stringstream eop_buffer;
     static Record tmpRecord;
-    static Schema mySchema;
     static char *loadFileName;
     static streambuf *sbuf;
+    static SortInfo *startUp;
 
 
     inline bool FileExists (const std::string& name)
@@ -50,45 +50,55 @@ protected:
 
     static void SetUpTestCase()
     {
+        setup();
+        string orderStr ("(l_orderkey)");
         eop_buffer << lineItemsOp.rdbuf();
-        lineItemsOp.close();
+        lineItemsOp.close ();
+        startUp->myOrder = new OrderMaker();
+        li->get_sort_order (*startUp->myOrder, orderStr);
+        startUp->runLength = 10;
+    }
+    static void TearDownTestCase() {
+        delete startUp->myOrder;
+        delete startUp;
+        startUp = NULL;
     }
 };
 
-DBFile HeapDBFileTest::tmp;
-ifstream HeapDBFileTest::lineItemsOp("static_test_data/li_op.txt");
-stringstream HeapDBFileTest::eop_buffer;
-Record HeapDBFileTest::tmpRecord;
-Schema HeapDBFileTest::mySchema("catalog", "lineitem");
-char* HeapDBFileTest::loadFileName = "static_test_data/li.tbl";
-streambuf* HeapDBFileTest::sbuf = cout.rdbuf();
+DBFile SortedDBFileTest::tmp;
+ifstream SortedDBFileTest::lineItemsOp("static_test_data/li_sorted_op.txt");
+stringstream SortedDBFileTest::eop_buffer;
+Record SortedDBFileTest::tmpRecord;
+char* SortedDBFileTest::loadFileName = "static_test_data/li.tbl";
+streambuf* SortedDBFileTest::sbuf = cout.rdbuf();
 
 
-char* HeapDBFileTest::fileName = "test_data/test_create";
-char* HeapDBFileTest::fileName2 = "test_data/test_create2";
-void* HeapDBFileTest::startUp = NULL;
-char* HeapDBFileTest::metaFileName = "test_data/test_create.metadata";
+char* SortedDBFileTest::fileName = "test_data/test_create";
+char* SortedDBFileTest::fileName2 = "test_data/test_create2";
+SortInfo* SortedDBFileTest::startUp = new SortInfo();
+char* SortedDBFileTest::metaFileName = "test_data/test_create.metadata";
 
-TEST_F  (HeapDBFileTest, check_empty_filename)
+TEST_F  (SortedDBFileTest, check_empty_filename)
 {
     char *emptyFileName ="";
-    EXPECT_EQ(false,tmp.Create(emptyFileName, heap,startUp));
-    EXPECT_EQ(false,tmp.Create(NULL, heap,startUp));
+    EXPECT_EQ(false,tmp.Create(emptyFileName, sorted, NULL));
+    EXPECT_EQ(false,tmp.Create(NULL, sorted, NULL));
 }
 
-TEST_F (HeapDBFileTest, create_heap_file)
+TEST_F (SortedDBFileTest, create_sorted_file)
 {
     DeleteFiles ();
-    EXPECT_EQ(true, tmp.Create(fileName, heap, startUp));
+    EXPECT_EQ(true, tmp.Create(fileName, sorted,(void*) startUp));
     EXPECT_EQ(true, FileExists(fileName));
     EXPECT_EQ(true, FileExists(metaFileName));
+    tmp.Close();
 }
 
-TEST_F (HeapDBFileTest, create_meta_file)
+TEST_F (SortedDBFileTest, create_meta_file)
 {
 
     DeleteFiles ();
-    tmp.Create(fileName, heap, startUp);
+    tmp.Create(fileName, sorted,(void*) startUp);
 
     ifstream metaFile(metaFileName);
     string fileType, whichPage;
@@ -100,28 +110,30 @@ TEST_F (HeapDBFileTest, create_meta_file)
     getline(metaFile, fileType);
     getline(metaFile, whichPage);
     metaFile.close();
-    EXPECT_EQ("0", fileType);
+    EXPECT_EQ("1", fileType);
     EXPECT_EQ("0", whichPage);
     EXPECT_EQ(true, tmp.CheckFileLength(0));
     EXPECT_EQ(true, FileExists(metaFileName));
+    tmp.Close();
 }
 
-TEST_F (HeapDBFileTest, open)
+TEST_F (SortedDBFileTest, open)
 {
     DeleteFiles ();
     DBFile tmp2;
-    EXPECT_EQ(true, tmp2.Create(fileName, heap, startUp));
+    EXPECT_EQ(true, tmp2.Create(fileName, sorted,(void*) startUp));
     EXPECT_EQ(true, tmp2.Open(fileName));
-    EXPECT_EQ(true, tmp2.CheckFileType(heap));
+    EXPECT_EQ(true, tmp2.CheckFileType(sorted));
+    tmp2.Close();
 }
 
-TEST_F (HeapDBFileTest, load_meta_data)
+TEST_F (SortedDBFileTest, load_meta_data)
 {
     DBFile tmp3;
     char *fileName1 = "test_data/test_meta_read";
     char *metaFileName1 = "test_data/test_meta_read.metadata";
 
-    tmp3.Create (fileName1, heap, startUp);
+    tmp3.Create (fileName1, sorted,(void*) startUp);
 
     ofstream metaFile(metaFileName1);
     if (!metaFile.is_open()) {
@@ -129,16 +141,17 @@ TEST_F (HeapDBFileTest, load_meta_data)
         EXPECT_EQ(false,true);
     }
 
-    metaFile << heap << endl;
+    metaFile << sorted << endl;
     metaFile << 5 << endl;
     metaFile.close();
 
     tmp3.Open(fileName1);
-    EXPECT_EQ(true, tmp3.CheckFileType(heap));
+    EXPECT_EQ(true, tmp3.CheckFileType(sorted));
     EXPECT_EQ(true, tmp3.CheckWhichPage(5));
+    tmp3.Close();
 }
 
-TEST_F (HeapDBFileTest, check_add)
+TEST_F (SortedDBFileTest, check_add)
 {
     DeleteFiles();
     int cnt = 0;
@@ -146,75 +159,76 @@ TEST_F (HeapDBFileTest, check_add)
     stringstream aop_buffer;
     FILE *tableFile = fopen (loadFileName, "r");
 
-    tmp.Create(fileName, heap, startUp);
+    tmp.Create(fileName, sorted,(void*) startUp);
+
+    while (tmpRecord.SuckNextRecord (li->schema(), tableFile) == 1) {
+        tmp.Add(tmpRecord);
+    }
 
     SetCoutBuffer(&aop_buffer);
-    while (tmpRecord.SuckNextRecord (&mySchema, tableFile) == 1) {
+    while( tmp.GetNext(tmpRecord)){
         cnt++;
-        tmp.Add(tmpRecord);
-        tmp.GetNext(aop);
-        aop.Print (&mySchema);
+        tmpRecord.Print (li->schema ());
     }
     ResetCoutBuffer();
-    EXPECT_EQ(false, tmp.GetNext(tmpRecord));
 
     fclose(tableFile);
     EXPECT_EQ(10,cnt);
     EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
 }
 
-TEST_F (HeapDBFileTest, check_empty_get_next)
+TEST_F (SortedDBFileTest, check_empty_get_next)
 {
     DeleteFiles ();
-    tmp.Create(fileName, heap, startUp);
+    tmp.Create(fileName, sorted,(void*) startUp);
     EXPECT_EQ(false, tmp.GetNext(tmpRecord));
+    tmp.Close();
 }
 
-
-TEST_F (HeapDBFileTest, check_move_first)
+TEST_F (SortedDBFileTest, check_move_first)
 {
     DeleteFiles();
 
-    tmp.Create(fileName, heap, startUp);
+    tmp.Create(fileName, sorted,(void*) startUp);
     EXPECT_EQ(true, tmp.CheckWhichPage(0));
     tmp.MoveFirst();
     EXPECT_EQ(true, tmp.CheckWhichPage(0));
     for(int i =0; i<10000; i++) {
-        tmp.Load(mySchema, loadFileName);
+        tmp.Load(*li->schema (), loadFileName);
     }
-    EXPECT_EQ(false, tmp.CheckWhichPage(0));
+    EXPECT_EQ(true, tmp.CheckWhichPage(0));
     tmp.MoveFirst();
     EXPECT_EQ(true, tmp.CheckWhichPage(1));
-
 }
 
-TEST_F (HeapDBFileTest, check_load_and_get_next)
+TEST_F (SortedDBFileTest, check_load_and_get_next)
 {
     int cnt = 0;
     stringstream aop_buffer;
 
     DeleteFiles ();
-    tmp.Create(fileName, heap, startUp);
-    tmp.Load(mySchema, loadFileName);
+    tmp.Create(fileName, sorted,(void*) startUp);
+    tmp.Load(*li->schema (), loadFileName);
 
     SetCoutBuffer(&aop_buffer);
     while (tmp.GetNext(tmpRecord) == 1) {
         cnt++;
-        tmpRecord.Print (&mySchema);
+        tmpRecord.Print (li->schema());
     }
     ResetCoutBuffer();
 
     EXPECT_EQ(eop_buffer.str(),aop_buffer.str());
     EXPECT_EQ(10,cnt);
+    tmp.Close();
 }
 
-TEST_F (HeapDBFileTest, check_close_return)
+TEST_F (SortedDBFileTest, check_close_return)
 {
     DBFile tmp2;
     DeleteFiles ();
-    tmp.Create(fileName, heap, startUp);
-    tmp.Load(mySchema, loadFileName);
-    tmp2.Create(fileName2, heap, startUp);
-    tmp2.Load(mySchema, loadFileName);
+    tmp.Create(fileName, sorted,(void*) startUp);
+    tmp.Load(*li->schema (), loadFileName);
+    tmp2.Create(fileName2, sorted,(void*) startUp);
+    tmp2.Load(*li->schema (), loadFileName);
     EXPECT_EQ(tmp.Close(), tmp2.Close());
 }

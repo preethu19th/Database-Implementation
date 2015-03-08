@@ -50,8 +50,8 @@ endif
 makebin:
 	mkdir -p bin test_data a1test
 
-a2-2test: makebin Record.o  GenericDBFile.o HeapDBFile.o  SortedDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o a2-2test.a
-	$(CC) -o bin/a2-2test bin/Record.o  bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/a2-2test.o -lfl -lpthread
+a2-2test: makebin Record.o  GenericDBFile.o HeapDBFile.o  SortedDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o a2-2test.a
+	$(CC) -o bin/a2-2test bin/Record.o  bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/a2-2test.o -lfl -lpthread
 
 a2-test: makebin Record.o GenericDBFile.o HeapDBFile.o SortedDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o a2-test.a
 	$(CC) -o bin/a2-test bin/Record.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/a2-test.o -lfl -lpthread
@@ -135,8 +135,8 @@ clean:
 autotest.a: source/autotest.cc $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS)  -c source/autotest.cc -o bin/autotest.o
 
-autotest: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o GenericDBFile.o HeapDBFile.o y.tab.o lex.yy.o autotest.a gtest_main.a
-	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/autotest.o  bin/gtest_main.a -lfl  -o  bin/autotest 
+autotest: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o GenericDBFile.o HeapDBFile.o SortedDBFile.o test.o autotest.a gtest_main.a
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/autotest.o bin/gtest_main.a -lfl  -o  bin/autotest 
 	./bin/autotest
 
 test.o: source/test.cc
@@ -145,13 +145,16 @@ test.o: source/test.cc
 heapdbfile_unittest.o : source/HeapDBFile_unittest.cc $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/HeapDBFile_unittest.cc -o bin/heapdbfile_unittest.o
 
+sorteddbfile_unittest.o : source/SortedDBFile_unittest.cc $(GTEST_HEADERS)
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/SortedDBFile_unittest.cc -o bin/sorteddbfile_unittest.o
+
 bigq_unittest.o : source/BigQ_unittest.cc $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/BigQ_unittest.cc -o bin/bigq_unittest.o
 
 comparison_unittest.o : source/Comparison_unittest.cc $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/Comparison_unittest.cc -o bin/comparison_unittest.o
 
-unittests : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o GenericDBFile.o HeapDBFile.o SortedDBFile.o test.o heapdbfile_unittest.o bigq_unittest.o comparison_unittest.o gtest_main.a
-	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/heapdbfile_unittest.o bin/bigq_unittest.o bin/comparison_unittest.o bin/gtest_main.a -o bin/unittests
+unittests : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o GenericDBFile.o HeapDBFile.o SortedDBFile.o test.o heapdbfile_unittest.o sorteddbfile_unittest.o bigq_unittest.o comparison_unittest.o gtest_main.a
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/heapdbfile_unittest.o bin/bigq_unittest.o bin/comparison_unittest.o bin/sorteddbfile_unittest.o bin/gtest_main.a -o bin/unittests
 	./bin/unittests
 

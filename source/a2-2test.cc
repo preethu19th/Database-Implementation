@@ -27,8 +27,6 @@ int add_data (FILE *src, int numrecs, int &res)
 // create a dbfile interactively
 void test1 ()
 {
-
-
     OrderMaker o;
     rel->get_sort_order (o);
 

@@ -28,7 +28,7 @@ char* customer = "customer";
 char* orders = "orders";
 char* region = "region";
 char* lineitem = "lineitem";
-relation *s, *p, *ps, *n, *li, *r, *o, *c;
+relation *rel, *s, *p, *ps, *n, *li, *r, *o, *c;
 relation::relation (char *_name, Schema *_schema, char *_prefix) :
 	rname (_name), rschema (_schema), prefix (_prefix)
 {

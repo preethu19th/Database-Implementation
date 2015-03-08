@@ -160,11 +160,11 @@ void SortedDBFile::SwitchOnReadMode ()
     this->Close();
     remove(filePath.c_str());
     rename(tempFilePath.c_str(), filePath.c_str());
+    pthread_join(sthread, NULL);
     delete inPipe;
     delete outPipe;
     inPipe = NULL;
     outPipe = NULL;
-    pthread_join(sthread, NULL);
     this->Open((char*)filePath.c_str());
     MoveFirst ();
 }

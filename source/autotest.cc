@@ -112,12 +112,10 @@ void AutoTest::test3()
     }
 
     rel = rel_ptr [findx - 1];
-    YY_BUFFER_STATE buffer = yy_scan_string( const_cast<char*>(cnfStr.c_str()));
 
     CNF cnf;
     Record literal;
-    rel->get_cnf (cnf, literal);
-    yy_delete_buffer(buffer);
+    rel->get_cnf (cnf, literal,cnfStr.c_str());
 
     DBFile dbfile;
     dbfile.Open (rel->path());
