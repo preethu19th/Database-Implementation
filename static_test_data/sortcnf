@@ -1,0 +1,8 @@
+(n_nationkey)
+(r_regionkey)
+(c_custkey)
+(p_partkey)
+(ps_partkey)
+(o_orderkey)
+(l_orderkey)
+(s_suppkey)

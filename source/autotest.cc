@@ -1,5 +1,6 @@
 #include "test.h"
 #include "gtest/gtest.h"
+#include "SortInfo.h"
 
 class AutoTest : public ::testing::Test
 {
@@ -7,7 +8,7 @@ protected:
 
     static relation *rel_ptr[8];
 
-    static ifstream tblnum, cnfFile;
+    static ifstream tblnum, cnfFile, sortFile;
     static int findx;
     static int lineNumber;
     static int tblcnts[8];
@@ -25,55 +26,55 @@ protected:
         rel_ptr[6] = li;
         rel_ptr[7] = s;
 
-        for(findx=1; findx<9; findx++) {
-            rel = rel_ptr [findx - 1];
-            test1();
-        }
-
-        for(findx=1; findx<9; findx++) {
-            rel = rel_ptr [findx - 1];
-            test2();
-        }
     }
     static void TearDownTestCase()
     {
-        tblnum.close();
-        cnfFile.close();
         cleanup ();
     }
 
-    static void test1();
+    static void test1(fType f_type, void* startUp);
     static void test2();
     static void test3();
-// scan of a DBfile and apply a filter predicate
+
+    // scan of a DBfile and apply a filter predicate
+    static void resetArrs();
 };
 
 int AutoTest::lineNumber = 1;
 relation * AutoTest::rel_ptr[8];
 
-ifstream AutoTest::tblnum("static_test_data/tblnum");
-ifstream AutoTest::cnfFile("static_test_data/cnf");
+ifstream AutoTest::tblnum;
+ifstream AutoTest::cnfFile;
+ifstream AutoTest::sortFile;
 int AutoTest::findx = 0;
 int AutoTest::tblcnts[8];
 int AutoTest::scancnts[8];
 
-void AutoTest::test1 ()
+void AutoTest :: resetArrs ()
+{
+    for(findx=0; findx<8; findx++) {
+        tblcnts[findx] = 0;
+        scancnts[findx] = -1;
+    }
+}
+
+void AutoTest::test1 (fType f_type, void* startUp)
 {
 
     DBFile dbfile;
     cout << " DBFile will be created at " << rel->path () << endl;
-    dbfile.Create (rel->path(), heap, NULL);
+    dbfile.Create (rel->path(), f_type, startUp);
 
     char tbl_path[100]; // construct path of the tpch flat text file
     sprintf (tbl_path, "%s%s.tbl", tpch_dir, rel->name());
     cout << " tpch file will be loaded from " << tbl_path << endl;
 
     dbfile.Load (*(rel->schema ()), tbl_path);
-    tblcnts[findx-1] = dbfile.TotalRecords();
+    tblcnts[findx] = dbfile.TotalRecords();
 
     if(!dbfile.Close ()) {
         cout << "Error! Failed to close table number : "
-             << findx << "!\n";
+            << findx << "!\n";
         EXPECT_EQ(true,false);
     }
 }
@@ -91,7 +92,7 @@ void AutoTest::test2 ()
     while (dbfile.GetNext (temp) == 1) {
         counter += 1;
     }
-    scancnts[findx-1] = counter;
+    scancnts[findx] = counter;
 
     dbfile.Close ();
 }
@@ -144,59 +145,66 @@ void AutoTest::test3()
     lineNumber++;
 }
 
-
-TEST_F (AutoTest, match_scan_cnt)
+TEST_F (AutoTest, sorted_match_scan_cnt)
 {
+    tblnum.open("static_test_data/tblnum", ifstream::in);
+    cnfFile.open("static_test_data/cnf", ifstream::in);
+    sortFile.open("static_test_data/sortcnf", ifstream::in);
+    SortInfo si;
+    OrderMaker om;
+    string sortcnf;
+    resetArrs ();
+
+    for(findx=0; findx<8; findx++) {
+        sortFile >> sortcnf;
+        rel = rel_ptr [findx];
+        rel->get_sort_order(om, sortcnf);
+        si.myOrder = &om;
+        si.runLength = 10;
+        test1(sorted, (void*)&si);
+    }
+
+    for(findx=0; findx<8; findx++) {
+        rel = rel_ptr [findx];
+        test2();
+    }
+
+
     for(findx=0; findx<8; findx++) {
         EXPECT_EQ(tblcnts[findx],scancnts[findx] );
     }
+
+    for(int i=0; i<12; i++) {
+        test3 ();
+    }
+    tblnum.close();
+    cnfFile.close();
+    sortFile.close();
 }
 
-TEST_F (AutoTest, match_filter_scan_1)
+TEST_F (AutoTest, heap_match_scan_cnt)
 {
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_2)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_3)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_4)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_5)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_6)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_7)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_8)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_9)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_10)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_11)
-{
-    test3();
-}
-TEST_F (AutoTest, match_filter_scan_12)
-{
-    test3();
+    tblnum.open("static_test_data/tblnum", std::ifstream::in);
+    cnfFile.open("static_test_data/cnf", std::ifstream::in);
+    resetArrs ();
+
+    for(findx=0; findx<8; findx++) {
+        rel = rel_ptr [findx];
+        test1(heap, NULL);
+    }
+
+    for(findx=0; findx<8; findx++) {
+        rel = rel_ptr [findx];
+        test2();
+    }
+
+    for(findx=0; findx<8; findx++) {
+        EXPECT_EQ(tblcnts[findx],scancnts[findx] );
+    }
+
+    for(int i=0; i<12; i++) {
+        test3 ();
+    }
+    tblnum.close();
+    cnfFile.close();
 }
