@@ -40,6 +40,7 @@ public:
     int runLen;
     Pipe *inPipe, *outPipe;
     bool readmode;
+    bool is_bs_performed;
     int Create (char *fpath, fType file_type, void *startup);
     int Open (char *fpath);
     int Close ();
@@ -49,6 +50,8 @@ public:
     void SwitchOnReadMode ();
     int GetNext (Record &fetchme);
     int GetNext (Record &fetchme, CNF &cnf, Record &literal);
+    inline int LinearSearch (Record &fetchme, CNF &cnf, Record &literal);
+    off_t BinarySearch (Record &fetchme, Record &literal);
 };
 
 #endif

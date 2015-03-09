@@ -14,10 +14,12 @@
 #include "SortInfo.h"
 
 using namespace std;
+static Schema mySchema ("catalog", "lineitem");
 
 SortedDBFile::SortedDBFile ()
 {
     ResetSVals ();
+    is_bs_performed = false;
 }
 
 inline void SortedDBFile :: ResetSVals ()
@@ -92,8 +94,10 @@ void SortedDBFile::MoveFirst ()
     }
     if(whichPage != 0 ) {
         whichPage = 0;
+        currPage.EmptyItOut();
         file.GetPage(&currPage,whichPage);
         whichPage++;
+        is_bs_performed = false;
     }
 }
 
@@ -197,20 +201,96 @@ int SortedDBFile::GetNext (Record &fetchme)
     }
 }
 
+off_t SortedDBFile::BinarySearch (Record &fetchme, Record &literal)
+{
+    off_t low = 0;
+    off_t mid = 0;
+    off_t high = file.GetLength () - 1;
+    int ret = 0;
+    ComparisonEngine comp;
+
+    while (low + 1 < high) {
+        mid = (low + high) / 2;
+        currPage.EmptyItOut();
+        file.GetPage(&currPage, mid);
+        currPage.GetFirst(&fetchme);
+        ret = comp.Compare(&fetchme, &queryOrderMaker, &literal, &literalOrderMaker);
+        if (ret == 0) {
+            high = mid;
+        } else if(ret > 0) {
+            high = mid - 1;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    /* Try if rec is in low page */
+    currPage.EmptyItOut();
+    file.GetPage(&currPage, low);
+    while (currPage.GetFirst(&fetchme)) {
+        ret = comp.Compare(&fetchme, &queryOrderMaker, &literal, &literalOrderMaker);
+        if (ret == 0) {
+            currPage.EmptyItOut();
+            return low;
+        }
+    }
+
+    /* Try if rec is in high page */
+    currPage.EmptyItOut();
+    file.GetPage(&currPage, high);
+    while (currPage.GetFirst(&fetchme)) {
+        ret = comp.Compare(&fetchme, &queryOrderMaker, &literal, &literalOrderMaker);
+        if (ret == 0) {
+            currPage.EmptyItOut();
+            return high;
+        }
+    }
+
+    return -1;
+}
+
+inline int SortedDBFile::LinearSearch (Record &fetchme, CNF &cnf, Record &literal)
+{
+    while(GetNext(fetchme)) {
+        if(ceng.Compare (&fetchme, &literal, &cnf)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int SortedDBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal)
 {
+    off_t targetPNum = -1;
+
     if(!readmode) {
         SwitchOnReadMode();
     }
+
 	cnf.GetSortOrders (queryOrderMaker, dummy);
-    if(om.HasOrderedQueryCols(queryOrderMaker, literalOrderMaker)) {
-        //binary search
-    } else {
-        while(GetNext(fetchme)) {
-            if(ceng.Compare (&fetchme, &literal, &cnf)) {
+    if(!om.HasOrderedQueryCols(queryOrderMaker, literalOrderMaker))
+        return LinearSearch(fetchme, cnf, literal);
+
+    /* Do Binary search */
+    if (!is_bs_performed) {
+        targetPNum = BinarySearch(fetchme, literal);
+        /* Failure case */
+        if (targetPNum == -1)
+            return 0;
+
+        /* BSearch success */
+        is_bs_performed = true;
+        currPage.EmptyItOut();
+        file.GetPage(&currPage, targetPNum);
+        whichPage = targetPNum + 1;
+    }
+
+    if (is_bs_performed) {
+        while (currPage.GetFirst(&fetchme)) {
+            if(ceng.Compare (&fetchme, &literal, &cnf))
                 return 1;
-            }
         }
     }
+
     return 0;
 }
