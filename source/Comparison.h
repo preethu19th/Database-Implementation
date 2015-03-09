@@ -44,6 +44,7 @@ class OrderMaker
 
     friend class ComparisonEngine;
     friend class CNF;
+    friend class ComparisonTest;
 
     int numAtts;
 
@@ -68,7 +69,7 @@ public:
     void Print ();
 
     //check all columns of ordermaker is present in query
-    bool HasOrderedQueryCols (OrderMaker &queryOrderMaker);
+    int HasOrderedQueryCols (OrderMaker &,OrderMaker &);
 };
 
 class Record;

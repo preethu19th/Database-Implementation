@@ -203,7 +203,7 @@ int SortedDBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal)
         SwitchOnReadMode();
     }
 	cnf.GetSortOrders (queryOrderMaker, dummy);
-    if(om.HasOrderedQueryCols(queryOrderMaker)) {
+    if(om.HasOrderedQueryCols(queryOrderMaker, literalOrderMaker)) {
         //binary search
     } else {
         while(GetNext(fetchme)) {
