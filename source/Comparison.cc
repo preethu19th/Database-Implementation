@@ -148,30 +148,6 @@ std::istream& operator>>(std::istream& is, OrderMaker& om)
     return is;
 }
 
-int OrderMaker :: HasOrderedQueryCols (OrderMaker &queryOrderMaker,
-                                       OrderMaker &literalOrderMaker)
-{
-    int i = 0;
-    while(i < numAtts) {
-        bool jRet = false;
-        for(int j = 0;
-                j< queryOrderMaker.numAtts && !jRet;
-                j++) {
-            jRet = queryOrderMaker.whichAtts[j] ==  whichAtts[i];
-        }
-        if(jRet) {
-            literalOrderMaker.whichAtts[i] = whichAtts[i];
-            literalOrderMaker.whichTypes[i] = whichTypes[i];
-            i++;
-        } else {
-            literalOrderMaker.numAtts = i;
-            return i;
-        }
-    }	
-    literalOrderMaker.numAtts = i;
-    return i;
-}
-
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right)
 {
 
@@ -681,4 +657,44 @@ void CNF :: GrowFromParseTree (struct AndList *parseTree, Schema *mySchema,
     remove("hkljdfgkSDFSDF");
 }
 
+int CNF :: HasOrderedQueryCols (OrderMaker &s, OrderMaker &q, OrderMaker &l)
+{
+    int querywhichAtt, literalwhichAtt, counter=0;
+    Type whichType;
+    q.numAtts = 0;
+    l.numAtts = 0;
 
+    for(int i=0; i<s.numAtts; i++) {
+        int colmatch = 0;
+        for(int j = 0;j<numAnds && !colmatch;j++) {
+            if (orLens[j] != 1)
+                continue;
+
+            if (orList[j][0].op != Equals)
+                continue;
+
+            querywhichAtt = orList[j][0].whichAtt1;
+            literalwhichAtt = orList[j][0].whichAtt2;
+            whichType = s.whichTypes[i];
+            if(s.whichAtts[i] == querywhichAtt) {
+                colmatch =1;
+                counter++;
+                q.whichAtts[i] = querywhichAtt;
+                q.whichTypes[i] = whichType;
+                q.numAtts++;
+                l.whichAtts[i] = literalwhichAtt;
+                l.whichTypes[i] = whichType;
+                l.numAtts++;
+            }
+
+        }
+
+        if((!colmatch) &&(counter==0))
+            return 0;
+        else if(!colmatch)
+            break;
+
+    }
+
+    return 1;
+}

@@ -54,7 +54,7 @@ a2-2test: makebin Record.o  GenericDBFile.o HeapDBFile.o  SortedDBFile.o Compari
 	$(CC) -o bin/a2-2test bin/Record.o  bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/a2-2test.o -lfl -lpthread
 
 a2-test: makebin Record.o GenericDBFile.o HeapDBFile.o SortedDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o a2-test.a test.o
-	$(CC) -o bin/a2-test bin/Record.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bi/test.o bin/a2-test.o -lfl -lpthread
+	$(CC) -o bin/a2-test bin/Record.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/a2-test.o -lfl -lpthread
 
 a1-test: makebin Record.o GenericDBFile.o HeapDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o a1-test.a SortedDBFile.o BigQ.o Pipe.o test.o
 	$(CC) -o  bin/a1-test bin/Record.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o  bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/a1-test.o bin/BigQ.o bin/Pipe.o bin/test.o -lfl -lpthread

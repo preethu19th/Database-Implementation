@@ -67,9 +67,6 @@ public:
 
     // print to the screen
     void Print ();
-
-    //check all columns of ordermaker is present in query
-    int HasOrderedQueryCols (OrderMaker &,OrderMaker &);
 };
 
 class Record;
@@ -110,6 +107,8 @@ public:
     void GrowFromParseTree (struct AndList *parseTree, Schema *mySchema,
                             Record &literal);
 
+
+    int HasOrderedQueryCols (OrderMaker&,OrderMaker &,OrderMaker &);
 };
 
 #endif

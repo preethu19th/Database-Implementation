@@ -205,7 +205,7 @@ off_t SortedDBFile::BinarySearch (Record &fetchme, Record &literal)
 {
     off_t low = 0;
     off_t mid = 0;
-    off_t high = file.GetLength () - 1;
+    off_t high = file.GetLength () - 2;
     int ret = 0;
     ComparisonEngine comp;
 
@@ -215,12 +215,10 @@ off_t SortedDBFile::BinarySearch (Record &fetchme, Record &literal)
         file.GetPage(&currPage, mid);
         currPage.GetFirst(&fetchme);
         ret = comp.Compare(&fetchme, &queryOrderMaker, &literal, &literalOrderMaker);
-        if (ret == 0) {
+        if (ret >= 0) {
             high = mid;
-        } else if(ret > 0) {
-            high = mid - 1;
         } else {
-            low = mid + 1;
+            low = mid;
         }
     }
 
@@ -230,7 +228,7 @@ off_t SortedDBFile::BinarySearch (Record &fetchme, Record &literal)
     while (currPage.GetFirst(&fetchme)) {
         ret = comp.Compare(&fetchme, &queryOrderMaker, &literal, &literalOrderMaker);
         if (ret == 0) {
-            currPage.EmptyItOut();
+            whichPage = low + 1;
             return low;
         }
     }
@@ -241,7 +239,7 @@ off_t SortedDBFile::BinarySearch (Record &fetchme, Record &literal)
     while (currPage.GetFirst(&fetchme)) {
         ret = comp.Compare(&fetchme, &queryOrderMaker, &literal, &literalOrderMaker);
         if (ret == 0) {
-            currPage.EmptyItOut();
+            whichPage = high + 1;
             return high;
         }
     }
@@ -252,10 +250,10 @@ off_t SortedDBFile::BinarySearch (Record &fetchme, Record &literal)
 inline int SortedDBFile::LinearSearch (Record &fetchme, CNF &cnf, Record &literal)
 {
     while(GetNext(fetchme)) {
-        if(ceng.Compare (&fetchme, &literal, &cnf)) {
+        if(ceng.Compare (&fetchme, &literal, &cnf))
             return 1;
-        }
     }
+
     return 0;
 }
 
@@ -263,32 +261,30 @@ int SortedDBFile::GetNext (Record &fetchme, CNF &cnf, Record &literal)
 {
     off_t targetPNum = -1;
 
-    if(!readmode) {
+    if(!readmode)
         SwitchOnReadMode();
-    }
 
-	cnf.GetSortOrders (queryOrderMaker, dummy);
-    if(!om.HasOrderedQueryCols(queryOrderMaker, literalOrderMaker))
+    if(!cnf.HasOrderedQueryCols(om, queryOrderMaker, literalOrderMaker))
         return LinearSearch(fetchme, cnf, literal);
 
     /* Do Binary search */
     if (!is_bs_performed) {
-        targetPNum = BinarySearch(fetchme, literal);
         /* Failure case */
-        if (targetPNum == -1)
+        if(BinarySearch(fetchme, literal) == -1)
             return 0;
-
         /* BSearch success */
         is_bs_performed = true;
-        currPage.EmptyItOut();
-        file.GetPage(&currPage, targetPNum);
-        whichPage = targetPNum + 1;
+        return 1;
     }
 
     if (is_bs_performed) {
-        while (currPage.GetFirst(&fetchme)) {
-            if(ceng.Compare (&fetchme, &literal, &cnf))
+        while(GetNext(fetchme)) {
+            if(ceng.Compare (&fetchme, &literal, &cnf)) {
                 return 1;
+            } else {
+                is_bs_performed = false;
+                return 0;
+            }
         }
     }
 

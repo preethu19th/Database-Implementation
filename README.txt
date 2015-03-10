@@ -14,10 +14,15 @@ To run the autotest program - This loads the tpch data into DBFile heap file, sc
 
 	make autotest
 
+To run the a2-2test program - This is used to test the SortedDBFile class
+
+	make a2-2test
+	./bin/a2-2test
+
 To run the a2-test program - This is used to test the BigQ class
 
-	make test2
-	./bin/test2
+	make a2-test
+	./bin/a2-test
 
 To run the a1-test program - this is used to load, scan, and scan & filter heap DBFiles interactively
 
