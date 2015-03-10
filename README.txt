@@ -1,6 +1,19 @@
 # COP-6726-Spring2015
 [![Build Status](https://magnum.travis-ci.com/preethu19th/COP-6726-Spring2015.svg?token=kpbq8bmL5S9Txs63cGxQ&branch=master)](https://magnum.travis-ci.com/preethu19th/COP-6726-Spring2015)
 
+
+To run the Project 2 Part-2 test: a2-2test program 
+This is used to test the SortedDBFile class
+
+	make a2-2test
+	./bin/a2-2test
+
+To run the Project 2 Part-2 test: a2-test program
+This is used to test the BigQ class
+
+	make a2-test
+	./bin/a2-test
+
 To run the main program - this is used to run queries againt the tpch-dbgen pipe-delimited text file.
 
 	make main
@@ -13,16 +26,6 @@ To clean - this deletes the following folder bin, a1test
 To run the autotest program - This loads the tpch data into DBFile heap file, scans the lines in the DBFile and apply the cnf on the respective tables using static\_test\_data/cnf file, comparing the output with the expected output in static\_test\_data/expop\* files
 
 	make autotest
-
-To run the a2-2test program - This is used to test the SortedDBFile class
-
-	make a2-2test
-	./bin/a2-2test
-
-To run the a2-test program - This is used to test the BigQ class
-
-	make a2-test
-	./bin/a2-test
 
 To run the a1-test program - this is used to load, scan, and scan & filter heap DBFiles interactively
 
