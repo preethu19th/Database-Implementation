@@ -659,7 +659,7 @@ void CNF :: GrowFromParseTree (struct AndList *parseTree, Schema *mySchema,
 
 int CNF :: HasOrderedQueryCols (OrderMaker &s, OrderMaker &q, OrderMaker &l)
 {
-    int querywhichAtt, literalwhichAtt, counter=0;
+    int querywhichAtt, literalwhichAtt;
     Type whichType;
     q.numAtts = 0;
     l.numAtts = 0;
@@ -678,7 +678,6 @@ int CNF :: HasOrderedQueryCols (OrderMaker &s, OrderMaker &q, OrderMaker &l)
             whichType = s.whichTypes[i];
             if(s.whichAtts[i] == querywhichAtt) {
                 colmatch =1;
-                counter++;
                 q.whichAtts[i] = querywhichAtt;
                 q.whichTypes[i] = whichType;
                 q.numAtts++;
@@ -689,7 +688,7 @@ int CNF :: HasOrderedQueryCols (OrderMaker &s, OrderMaker &q, OrderMaker &l)
 
         }
 
-        if((!colmatch) &&(counter==0))
+        if((!colmatch) &&(i==0))
             return 0;
         else if(!colmatch)
             break;

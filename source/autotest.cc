@@ -1,11 +1,13 @@
 #include "test.h"
 #include "gtest/gtest.h"
+#include "ComparisonEngine.h"
 #include "SortInfo.h"
 
 class AutoTest : public ::testing::Test
 {
 protected:
 
+    static ComparisonEngine ceng;
     static relation *rel_ptr[8];
 
     static ifstream tblnum, cnfFile, sortFile;
@@ -33,7 +35,7 @@ protected:
     }
 
     static void test1(fType f_type, void* startUp);
-    static void test2();
+    static void test2(fType,void*);
     static void test3();
 
     // scan of a DBfile and apply a filter predicate
@@ -42,6 +44,7 @@ protected:
 
 int AutoTest::lineNumber = 1;
 relation * AutoTest::rel_ptr[8];
+ComparisonEngine AutoTest::ceng;
 
 ifstream AutoTest::tblnum;
 ifstream AutoTest::cnfFile;
@@ -79,8 +82,13 @@ void AutoTest::test1 (fType f_type, void* startUp)
     }
 }
 
-void AutoTest::test2 ()
+void AutoTest::test2 (fType f,void *s)
 {
+
+    OrderMaker om;
+    if(f ==sorted) {
+        om = *(OrderMaker *) s;
+    }
 
     DBFile dbfile;
     dbfile.Open (rel->path());
@@ -88,11 +96,28 @@ void AutoTest::test2 ()
 
     Record temp;
 
-    int counter = 0;
-    while (dbfile.GetNext (temp) == 1) {
+    int counter = 0, err = 0;
+    Record rec[2];
+    Record *last = NULL, *prev = NULL;
+
+    while (dbfile.GetNext (rec[counter%2]) == 1) {
+        if(f == sorted) {
+            prev = last;
+            last = &rec[counter%2];
+
+            if (prev && last) {
+                if (ceng.Compare (prev, last, &om) == 1) {
+                    err++;
+                }
+            }
+        }
         counter += 1;
     }
+
     scancnts[findx] = counter;
+        if(f == sorted) {
+            EXPECT_EQ(0,err);
+        }
 
     dbfile.Close ();
 }
@@ -103,27 +128,16 @@ void AutoTest::test3()
     string cnfStr;
     stringstream eop;
     stringstream aop;
+    CNF cnf;
+    Record literal,temp;
+    DBFile dbfile;
 
     tblnum >> findx;
     getline(cnfFile, cnfStr);
-
-    if(lineNumber != 11) {
-        lineNumber++;
-        return;
-    }
-
     rel = rel_ptr [findx - 1];
-
-    CNF cnf;
-    Record literal;
     rel->get_cnf (cnf, literal,cnfStr.c_str());
-
-    DBFile dbfile;
     dbfile.Open (rel->path());
     dbfile.MoveFirst ();
-
-    Record temp;
-
     int counter = 0;
 
     SetCoutBuffer(&aop);
@@ -131,18 +145,42 @@ void AutoTest::test3()
         counter++;
         temp.PrintWoComment(rel->schema());
     }
+
     ResetCoutBuffer();
     dbfile.Close ();
-
-
     char expectedFile[25];
     sprintf(expectedFile,"static_test_data/expop%d",lineNumber);
     GetExpectedOp(&eop,expectedFile,rel->schema(),eopcnt);
-
     EXPECT_EQ(eopcnt, counter);
     EXPECT_EQ(eop.str(),aop.str());
-
     lineNumber++;
+}
+
+TEST_F (AutoTest, heap_match_scan_cnt)
+{
+    tblnum.open("static_test_data/tblnum", std::ifstream::in);
+    cnfFile.open("static_test_data/cnf", std::ifstream::in);
+    resetArrs ();
+    for(findx=0; findx<8; findx++) {
+        rel = rel_ptr [findx];
+        test1(heap, NULL);
+    }
+
+    for(findx=0; findx<8; findx++) {
+        rel = rel_ptr [findx];
+        test2(heap, NULL);
+    }
+
+    for(findx=0; findx<8; findx++) {
+        EXPECT_EQ(tblcnts[findx],scancnts[findx] );
+    }
+
+    for(int i=0; i<12; i++) {
+        test3 ();
+    }
+
+    tblnum.close();
+    cnfFile.close();
 }
 
 TEST_F (AutoTest, sorted_match_scan_cnt)
@@ -154,7 +192,6 @@ TEST_F (AutoTest, sorted_match_scan_cnt)
     OrderMaker om;
     string sortcnf;
     resetArrs ();
-
     for(findx=0; findx<8; findx++) {
         sortFile >> sortcnf;
         rel = rel_ptr [findx];
@@ -162,49 +199,19 @@ TEST_F (AutoTest, sorted_match_scan_cnt)
         si.myOrder = &om;
         si.runLength = 10;
         test1(sorted, (void*)&si);
+        test2(sorted,(void*)&om);
     }
-
-    for(findx=0; findx<8; findx++) {
-        rel = rel_ptr [findx];
-        test2();
-    }
-
 
     for(findx=0; findx<8; findx++) {
         EXPECT_EQ(tblcnts[findx],scancnts[findx] );
     }
 
+    lineNumber = 1;
     for(int i=0; i<12; i++) {
         test3 ();
     }
+
     tblnum.close();
     cnfFile.close();
     sortFile.close();
-}
-
-TEST_F (AutoTest, heap_match_scan_cnt)
-{
-    tblnum.open("static_test_data/tblnum", std::ifstream::in);
-    cnfFile.open("static_test_data/cnf", std::ifstream::in);
-    resetArrs ();
-
-    for(findx=0; findx<8; findx++) {
-        rel = rel_ptr [findx];
-        test1(heap, NULL);
-    }
-
-    for(findx=0; findx<8; findx++) {
-        rel = rel_ptr [findx];
-        test2();
-    }
-
-    for(findx=0; findx<8; findx++) {
-        EXPECT_EQ(tblcnts[findx],scancnts[findx] );
-    }
-
-    for(int i=0; i<12; i++) {
-        test3 ();
-    }
-    tblnum.close();
-    cnfFile.close();
 }

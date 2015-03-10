@@ -107,8 +107,7 @@ public:
     void GrowFromParseTree (struct AndList *parseTree, Schema *mySchema,
                             Record &literal);
 
-
-    int HasOrderedQueryCols (OrderMaker&,OrderMaker &,OrderMaker &);
+    int HasOrderedQueryCols (OrderMaker &,OrderMaker &,OrderMaker &);
 };
 
 #endif
