@@ -2,7 +2,7 @@
  * SECTION 1
  ***********************************************************************/
 /* The code in %{ %} is included as it is in lex.yy.c file
- * it has C global variables, prototypes, and comments 
+ * it has C global variables, prototypes, and comments
  */
 
 
@@ -37,49 +37,49 @@ void yyerror(char*s);
 
 "("			return('(');
 
-")"    	        	return(')');
+")"					return(')');
 
 ">="			return('g');
 
 "<="			return('l');
 
-"<"    		      	return('<');
+"<"				  	return('<');
 
-">"    		 	return('>');
+">"			 	return('>');
 
 "=" 			return('=');
 
--?[0-9]+ 	       {yylval.actualChars = strdup(yytext);
-  			return(Int); 
-		        }
+-?[0-9]+ 		   {yylval.actualChars = strdup(yytext);
+  			return(Int);
+				}
 
--?[0-9]+\.[0-9]*       {yylval.actualChars = strdup(yytext); 
+-?[0-9]+\.[0-9]*	   {yylval.actualChars = strdup(yytext);
   			return(Float);
 			}
 
-"OR"      		return(OR);
+"OR"	  		return(OR);
 
 "AND"			return(AND);
 
-\'[^'\n]*\' 	       {/* take care of ' in a string */
+\'[^'\n]*\' 		   {/* take care of ' in a string */
 	 		if (yytext[yyleng - 2] == '\\') {
-     				yymore();
+	 				yymore();
    			} else {
-				yylval.actualChars = strdup(yytext + 1);	
+				yylval.actualChars = strdup(yytext + 1);
 				yylval.actualChars[strlen(yylval.actualChars) - 1] = 0;
-     				return(String);
+	 				return(String);
    			}
 			}
 
 [A-Za-z][A-Za-z0-9_-]* {yylval.actualChars = strdup(yytext);
   			return(Name);
-			}     
+			}
 
-\n                	lineno++;
+\n					lineno++;
 
-[ \t]             	;
+[ \t]			 	;
 
-.                 	yyerror("LEX_ERROR: invalid character");
+.				 	yyerror("LEX_ERROR: invalid character");
 
 %%
 

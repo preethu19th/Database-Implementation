@@ -15,7 +15,7 @@ using namespace std;
 
 GenericDBFile::GenericDBFile()
 {
-    ResetVals ();
+	ResetVals ();
 }
 
 GenericDBFile::~GenericDBFile()
@@ -24,43 +24,43 @@ GenericDBFile::~GenericDBFile()
 
 void GenericDBFile :: ResetVals ()
 {
-    whichPage = 0;
-    readRecsOffPage = 0;
-    totalRecords = 0;
+	whichPage = 0;
+	readRecsOffPage = 0;
+	totalRecords = 0;
 }
 
 int GenericDBFile::WriteGenMetaFile (ofstream &metaFile)
 {
-    metaFile << fileType << endl;
-    metaFile << whichPage << endl;
-    metaFile << totalRecords << endl;
-    return 1;
+	metaFile << fileType << endl;
+	metaFile << whichPage << endl;
+	metaFile << totalRecords << endl;
+	return 1;
 }
 
 int GenericDBFile::ReadGenMetaFile (ifstream &metaFile)
 {
-    metaFile >> whichPage;
-    metaFile >> totalRecords;
-    return 1;
+	metaFile >> whichPage;
+	metaFile >> totalRecords;
+	return 1;
 }
 
 void GenericDBFile::CopyMetaData (GenericDBFile *copyTo)
 {
-    copyTo->whichPage = whichPage;
-    copyTo->totalRecords = totalRecords;
+	copyTo->whichPage = whichPage;
+	copyTo->totalRecords = totalRecords;
 }
 
 bool GenericDBFile::CheckFileType (fType checkFileType)
 {
-    return checkFileType == fileType;
+	return checkFileType == fileType;
 }
 
 bool GenericDBFile::CheckWhichPage(int checkWP)
 {
-    return checkWP == whichPage;
+	return checkWP == whichPage;
 }
 
 bool GenericDBFile::CheckFileLength(int checkFL)
 {
-    return checkFL == file.GetLength ();
+	return checkFL == file.GetLength ();
 }

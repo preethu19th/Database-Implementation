@@ -19,39 +19,39 @@ using namespace std;
 
 
 struct SortedThreadArgs {
-    Pipe *inPipe, *outPipe;
-    OrderMaker *om;
-    BigQ *bigQ;
-    int runLen;
+	Pipe *inPipe, *outPipe;
+	OrderMaker *om;
+	BigQ *bigQ;
+	int runLen;
 };
 
 class SortedDBFile : public GenericDBFile
 {
 protected:
-    SortedThreadArgs *sargs;
-    int WriteMetaFile (ofstream &metaFile);
-    int ReadMetaFile (ifstream &metaFile);
-    inline void ResetSVals ();
+	SortedThreadArgs *sargs;
+	int WriteMetaFile (ofstream &metaFile);
+	int ReadMetaFile (ifstream &metaFile);
+	inline void ResetSVals ();
 public:
 
-    SortedDBFile ();
-    OrderMaker om, queryOrderMaker, dummy, literalOrderMaker;
-    pthread_t sthread;
-    int runLen;
-    Pipe *inPipe, *outPipe;
-    bool readmode;
-    bool is_bs_performed;
-    int Create (char *fpath, fType file_type, void *startup);
-    int Open (char *fpath);
-    int Close ();
-    void Load (Schema &myschema, char *loadpath);
-    void MoveFirst ();
-    void Add (Record &addme);
-    void SwitchOnReadMode ();
-    int GetNext (Record &fetchme);
-    int GetNext (Record &fetchme, CNF &cnf, Record &literal);
-    inline int LinearSearch (Record &fetchme, CNF &cnf, Record &literal);
-    off_t BinarySearch (Record &fetchme, Record &literal);
+	SortedDBFile ();
+	OrderMaker om, queryOrderMaker, dummy, literalOrderMaker;
+	pthread_t sthread;
+	int runLen;
+	Pipe *inPipe, *outPipe;
+	bool readmode;
+	bool is_bs_performed;
+	int Create (char *fpath, fType file_type, void *startup);
+	int Open (char *fpath);
+	int Close ();
+	void Load (Schema &myschema, char *loadpath);
+	void MoveFirst ();
+	void Add (Record &addme);
+	void SwitchOnReadMode ();
+	int GetNext (Record &fetchme);
+	int GetNext (Record &fetchme, CNF &cnf, Record &literal);
+	inline int LinearSearch (Record &fetchme, CNF &cnf, Record &literal);
+	off_t BinarySearch (Record &fetchme, Record &literal);
 };
 
 #endif

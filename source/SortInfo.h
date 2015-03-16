@@ -4,8 +4,8 @@
 #include "Comparison.h"
 
 struct SortInfo {
-    OrderMaker *myOrder;
-    int runLength;
+	OrderMaker *myOrder;
+	int runLength;
 };
 
 #endif
