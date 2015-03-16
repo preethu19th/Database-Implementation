@@ -8,7 +8,6 @@
 
 #include "Defs.h"
 #include "ParseTree.h"
-#include "Record.h"
 #include "Schema.h"
 #include "File.h"
 #include "Comparison.h"
@@ -22,19 +21,18 @@
 //	3) Byte offset to the start of the att in position numAtts
 //	4) Bits encoding the record's data
 
-class Record
-{
+class Record {
 
-	friend class ComparisonEngine;
-	friend class Page;
+friend class ComparisonEngine;
+friend class Page;
 
 private:
-	char *bits;
 	char* GetBits ();
 	void SetBits (char *bits);
 	void CopyBits(char *bits, int b_len);
 
 public:
+	char *bits;
 	Record ();
 	~Record();
 
@@ -42,7 +40,7 @@ public:
 	// this call, fromMe will no longer have anything inside of it
 	void Consume (Record *fromMe);
 
-	// make a copy of the record fromMe; note that this is far more
+	// make a copy of the record fromMe; note that this is far more 
 	// expensive (requiring a bit-by-bit copy) than Consume, which is
 	// only a pointer operation
 	void Copy (Record *copyMe);
@@ -52,7 +50,9 @@ public:
 	// if there is an error and returns a 1 otherwise
 	int SuckNextRecord (Schema *mySchema, FILE *textFile);
 
-	// this projects away various attributes...
+	int ComposeRecord (Schema *mySchema, const char *src);
+
+	// this projects away various attributes... 
 	// the array attsToKeep should be sorted, and lists all of the attributes
 	// that should still be in the record after Project is called.  numAttsNow
 	// tells how many attributes are currently in the record
@@ -60,8 +60,10 @@ public:
 
 	// takes two input records and creates a new record by concatenating them;
 	// this is useful for a join operation
-	void MergeRecords (Record *left, Record *right, int numAttsLeft,
-					   int numAttsRight, int *attsToKeep, int numAttsToKeep, int startOfRight);
+	// attsToKeep[] = {0, 1, 2, 0, 2, 4} --gets 0,1,2 records from left 0, 2, 4 recs from right and startOfRight=3
+	// startOfRight is the index position in attsToKeep for the first att from right rec
+	void MergeRecords (Record *left, Record *right, int numAttsLeft, 
+		int numAttsRight, int *attsToKeep, int numAttsToKeep, int startOfRight);
 
 	// prints the contents of the record; this requires
 	// that the schema also be given so that the record can be interpreted

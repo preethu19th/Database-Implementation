@@ -1,11 +1,10 @@
-
+#ifndef PARSE_TREE_H
+#define PARSE_TREE_H
 // these are the different types of operators that can appear
 // in a CNF expression
 #define LESS_THAN 1
 #define GREATER_THAN 2
 #define EQUALS 3
-#define LESS_EQ 4
-#define GREATER_EQ 5
 
 // these are the types of operands that can appear in a CNF expression
 #define DOUBLE 1
@@ -30,7 +29,7 @@ struct ComparisonOp {
 
 	// these are the operands on the left and on the right
 	struct Operand *left;
-	struct Operand *right;
+	struct Operand *right;	
 };
 
 struct OrList {
@@ -53,6 +52,28 @@ struct AndList {
 	struct AndList *rightAnd;
 
 };
+#if 0
+struct FuncOperand {
 
+	// this tells us the type of the operand: FLOAT, INT, STRING...
+	int code;
 
+	// this is the actual operand
+	char *value;
+};
+
+struct FuncOperator {
+
+	// this tells us which operator to use: '+', '-', ...
+	int code;
+
+	// these are the operators on the left and on the right
+	struct FuncOperator *leftOperator;
+	struct FuncOperand *leftOperand;
+	struct FuncOperator *right;	
+
+};
+
+#endif
+#endif
 

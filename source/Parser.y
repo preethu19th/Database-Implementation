@@ -1,7 +1,7 @@
-
+ 
 %{
 
-	#include "ParseTree.h"
+	#include "ParseTree.h" 
 	#include <stdio.h>
 	#include <string.h>
 	#include <stdlib.h>
@@ -10,16 +10,16 @@
 	extern "C" int yylex();
 	extern "C" int yyparse();
 	extern "C" void yyerror(char *s);
-
-	// this is the final parse tree that is returned
-	struct AndList *final;
+  
+	// this is the final parse tree that is returned	
+	struct AndList *final;	
 
 %}
 
 // this stores all of the types returned by production rules
 %union {
  	struct Operand *myOperand;
-	struct ComparisonOp *myComparison;
+	struct ComparisonOp *myComparison; 
   	struct OrList *myOrList;
   	struct AndList *myAndList;
 	char *actualChars;
@@ -35,18 +35,18 @@
 %token <actualChars> Int
 
 %type <myOrList> OrList
-%type <myAndList> AndList
-%type <myComparison> Condition
-%type <myOperand> Literal
-%type <myComparison> Op
+%type <myAndList> AndList 
+%type <myComparison> Condition 
+%type <myOperand> Literal 
+%type <myComparison> Op 
 
-%start AndList
+%start AndList 
 
 
 //******************************************************************************
 // SECTION 3
 //******************************************************************************
-/* This is the PRODUCTION RULES section which defines how to "understand" the
+/* This is the PRODUCTION RULES section which defines how to "understand" the 
  * input language and what action to take for each "statment"
  */
 
@@ -78,9 +78,9 @@ AndList: '(' OrList ')' AND AndList
 ;
 
 OrList: Condition OR OrList
-{
+{ 
 	// here we have to hang the condition off the left of the OrList
-	$$ = (struct OrList *) malloc (sizeof (struct OrList));
+	$$ = (struct OrList *) malloc (sizeof (struct OrList));	
 	$$->left = $1;
 	$$->rightOr = $3;
 }
@@ -94,7 +94,7 @@ OrList: Condition OR OrList
 }
 ;
 
-Condition: Literal Op Literal
+Condition: Literal Op Literal 
 {
 	// in this case we have a simple literal/variable comparison
 	$$ = $2;
@@ -110,50 +110,35 @@ Condition: Literal Op Literal
 	$$->right = $1;
 };
 
-Op: 'l'
-{
-	// construct and send up the comparison
-	$$ = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
-	$$->code = LESS_EQ;
-}
-
-| 'g'
-{
-	// construct and send up the comparison
-	$$ = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
-	$$->code = GREATER_EQ;
-}
-
-| '<'
+Op: '<' 
 {
 	// construct and send up the comparison
 	$$ = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
 	$$->code = LESS_THAN;
-}
+}  
 
 | '>'
 {
 	// construct and send up the comparison
 	$$ = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
 	$$->code = GREATER_THAN;
-}
+}  
 
 | '='
 {
 	// construct and send up the comparison
 	$$ = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
 	$$->code = EQUALS;
-}
-
+}  
 ;
 
-Literal : String
+Literal : String 
 {
 	// construct and send up the operand containing the string
 	$$ = (struct Operand *) malloc (sizeof (struct Operand));
 	$$->code = STRING;
 	$$->value = $1;
-}
+} 
 
 | Float
 {
@@ -161,7 +146,7 @@ Literal : String
 	$$ = (struct Operand *) malloc (sizeof (struct Operand));
 	$$->code = DOUBLE;
 	$$->value = $1;
-}
+} 
 
 | Int
 {
@@ -169,11 +154,11 @@ Literal : String
 	$$ = (struct Operand *) malloc (sizeof (struct Operand));
 	$$->code = INT;
 	$$->value = $1;
-}
+} 
 
 | Name
 {
-	// construct and send up the operand containing the name
+	// construct and send up the operand containing the name 
 	$$ = (struct Operand *) malloc (sizeof (struct Operand));
 	$$->code = NAME;
 	$$->value = $1;

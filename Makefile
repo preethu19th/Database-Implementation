@@ -50,17 +50,27 @@ endif
 makebin:
 	mkdir -p bin test_data a1test
 
+
+test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o a3-test.o  GenericDBFile.o HeapDBFile.o  SortedDBFile.o
+	$(CC) -o bin/test.out bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/Pipe.o bin/BigQ.o bin/RelOp.o bin/Function.o bin/y.tab.o bin/yyfunc.tab.o bin/lex.yyfunc.o bin/a3-test.o bin/GenericDBFile.o bin/HeapDBFile.o bin/SortedDBFile.o bin/lex.yy.o -lfl -lpthread
+
 a2-2test: makebin Record.o  GenericDBFile.o HeapDBFile.o  SortedDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o a2-2test.a
 	$(CC) -o bin/a2-2test bin/Record.o  bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/a2-2test.o -lfl -lpthread
 
 a2-test: makebin Record.o GenericDBFile.o HeapDBFile.o SortedDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o a2-test.a test.o
 	$(CC) -o bin/a2-test bin/Record.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/BigQ.o bin/DBFile.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/a2-test.o -lfl -lpthread
 
-a1-test: makebin Record.o GenericDBFile.o HeapDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o a1-test.a SortedDBFile.o BigQ.o Pipe.o test.o
+a1-test: makebin Record.o GenericDBFile.o HeapDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o y.tab.o lex.yy.o a1-test.a SortedDBFile.o BigQ.o Pipe.o test.o 
 	$(CC) -o  bin/a1-test bin/Record.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o  bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/y.tab.o bin/lex.yy.o bin/a1-test.o bin/BigQ.o bin/Pipe.o bin/test.o -lfl -lpthread
 	
 main: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o  bin/main bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/y.tab.o bin/lex.yy.o bin/main.o -lfl
+	
+a3-test.o: source/a3-test.cc
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/a3-test.cc -o bin/a3-test.o
+
+test.o: source/test.cc
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/test.cc -o bin/test.o
 	
 a1-test.a: source/a1-test.cc
 	$(CC) -g -c source/a1-test.cc -o bin/a1-test.o
@@ -106,6 +116,12 @@ Record.o: source/Record.cc
 
 Schema.o: source/Schema.cc
 	$(CC) -g -c source/Schema.cc -o bin/Schema.o 
+
+RelOp.o: source/RelOp.cc
+	$(CC) -g -c source/RelOp.cc -o bin/RelOp.o
+
+Function.o: source/Function.cc
+	$(CC) -g -c source/Function.cc -o bin/Function.o
 	
 y.tab.o: source/Parser.y
 	yacc -d source/Parser.y
@@ -118,6 +134,17 @@ lex.yy.o: source/Lexer.l
 	mv *.c source
 	gcc  -c source/lex.yy.c -o bin/lex.yy.o
 
+yyfunc.tab.o: source/ParserFunc.y
+	yacc -p "yyfunc" -b "yyfunc" -d source/ParserFunc.y
+	#sed $(tag) yyfunc.tab.c -e "s/  __attribute__ ((__unused__))$$/# ifndef __cplusplus\n  __attribute__ ((__unused__));\n# endif/" 
+	mv yyfunc.* source
+	g++ -c source/yyfunc.tab.c -o bin/yyfunc.tab.o
+	
+lex.yyfunc.o: source/LexerFunc.l
+	lex -Pyyfunc source/LexerFunc.l
+	mv *yyfunc.* source
+	gcc  -c source/lex.yyfunc.c -o bin/lex.yyfunc.o
+
 clean: 
 	rm -rf a1test
 	rm -rf test_data
@@ -125,7 +152,9 @@ clean:
 	rm -f source/y.tab.c
 	rm -f source/lex.yy.c
 	rm -f source/y.tab.h
-	
+	rm -f source/yyfunc.tab.*
+	rm -f source/lex.yy.*
+	rm -f source/lex.yyfunc*
 
 # Builds a sample test.  A test should link with either gtest.a or
 # gtest_main.a, depending on whether it defines its own main()
@@ -138,9 +167,6 @@ autotest.a: source/autotest.cc $(GTEST_HEADERS)
 autotest: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o GenericDBFile.o HeapDBFile.o SortedDBFile.o test.o autotest.a gtest_main.a
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/autotest.o bin/gtest_main.a -lfl  -o  bin/autotest 
 	./bin/autotest
-
-test.o: source/test.cc
-	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/test.cc -o bin/test.o
 
 heapdbfile_unittest.o : source/HeapDBFile_unittest.cc $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/HeapDBFile_unittest.cc -o bin/heapdbfile_unittest.o
