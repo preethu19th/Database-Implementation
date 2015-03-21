@@ -11,6 +11,8 @@
 #define INT 2
 #define STRING 3
 #define NAME 4
+#define LESS_EQ 4
+#define GREATER_EQ 5
 
 struct Operand {
 

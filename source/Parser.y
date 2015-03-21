@@ -110,7 +110,21 @@ Condition: Literal Op Literal
 	$$->right = $1;
 };
 
-Op: '<' 
+Op: 'l'
+{
+	// construct and send up the comparison
+	$$ = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
+	$$->code = LESS_EQ;
+}
+
+| 'g'
+{
+	// construct and send up the comparison
+	$$ = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));
+	$$->code = GREATER_EQ;
+}
+
+| '<'
 {
 	// construct and send up the comparison
 	$$ = (struct ComparisonOp *) malloc (sizeof (struct ComparisonOp));

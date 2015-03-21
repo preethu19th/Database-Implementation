@@ -43,6 +43,10 @@ void close_lexical_parser () { yy_delete_buffer (yylex_buf_state); }
 
 ")"    	        	return(')');
 
+">="			return('g');
+ 
+"<="			return('l');
+
 "<"    		      	return('<');
 
 ">"    		 	return('>');

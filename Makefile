@@ -51,7 +51,7 @@ makebin:
 	mkdir -p bin test_data a1test
 
 
-test.out: Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o a3-test.o  GenericDBFile.o HeapDBFile.o  SortedDBFile.o
+test.out: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o a3-test.o  GenericDBFile.o HeapDBFile.o  SortedDBFile.o
 	$(CC) -o bin/test.out bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/Pipe.o bin/BigQ.o bin/RelOp.o bin/Function.o bin/y.tab.o bin/yyfunc.tab.o bin/lex.yyfunc.o bin/a3-test.o bin/GenericDBFile.o bin/HeapDBFile.o bin/SortedDBFile.o bin/lex.yy.o -lfl -lpthread
 
 a2-2test: makebin Record.o  GenericDBFile.o HeapDBFile.o  SortedDBFile.o Comparison.o ComparisonEngine.o Schema.o File.o BigQ.o DBFile.o Pipe.o y.tab.o lex.yy.o test.o a2-2test.a

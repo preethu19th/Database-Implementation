@@ -6,6 +6,7 @@
 #include "Pipe.h"
 #include "DBFile.h"
 #include "Record.h"
+#include "Function.h"
 #include <fstream>
 #include <string>
 #include <sstream>
@@ -13,8 +14,11 @@
 
 using namespace std;
 
-// make sure that the information below is correct
+// test settings file should have the 
+// catalog_path, dbfile_dir and tpch_dir information in separate lines
+extern const char *settings;
 
+// make sure that the information below is correct
 extern char *catalog_path;
 extern char *tpch_dir;
 extern char *dbfile_dir;
@@ -27,6 +31,8 @@ extern "C" {
 	void yy_delete_buffer(YY_BUFFER_STATE buffer);
 }
 extern struct AndList *final;
+extern struct FuncOperator *finalfunc;
+extern FILE *yyin;
 
 typedef struct {
 	Pipe *pipe;

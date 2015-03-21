@@ -15,9 +15,10 @@ using namespace std;
 
 // make sure that the information below is correct
 
-char* catalog_path = "catalog";
-char* tpch_dir ="/cise/tmp/dbi_sp11/DATA/1G/"; // dir where dbgen tpch files (extension *.tbl) can be found
-char* dbfile_dir = "a1test/";
+const char *settings = "test.cat";
+char* catalog_path = NULL;
+char* tpch_dir = NULL;
+char* dbfile_dir = NULL;
 streambuf* sbuf = cout.rdbuf();
 
 char* supplier = "supplier";
@@ -104,6 +105,30 @@ relation::~relation()
 }
 void setup ()
 {
+	FILE *fp = fopen (settings, "r");
+	if (fp) {
+		char *mem = (char *) malloc (80 * 3);
+		catalog_path = &mem[0];
+		dbfile_dir = &mem[80];
+		tpch_dir = &mem[160];
+		char line[80];
+		fgets (line, 80, fp);
+		sscanf (line, "%s\n", catalog_path);
+		fgets (line, 80, fp);
+		sscanf (line, "%s\n", dbfile_dir);
+		fgets (line, 80, fp);
+		sscanf (line, "%s\n", tpch_dir);
+		fclose (fp);
+		if (! (catalog_path && dbfile_dir && tpch_dir)) {
+			cerr << " Test settings file 'test.cat' not in correct format.\n";
+			free (mem);
+			exit (1);
+		}
+	}
+	else {
+		cerr << " Test settings files 'test.cat' missing \n";
+		exit (1);
+	}
 	cout << " \n** IMPORTANT: MAKE SURE THE INFORMATION BELOW IS CORRECT **\n";
 	cout << " catalog location: \t" << catalog_path << endl;
 	cout << " tpch files dir: \t" << tpch_dir << endl;
@@ -130,6 +155,7 @@ void cleanup ()
 	delete  r;
 	delete  o;
 	delete  c;
+	free (catalog_path);
 }
 
 void ResetCoutBuffer()
