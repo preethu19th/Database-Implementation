@@ -32,6 +32,7 @@ SortedDBFile::~SortedDBFile ()
 		outPipe = NULL;
 		bigQ = NULL;
 	}
+
 }
 
 inline void SortedDBFile :: ResetSVals ()
@@ -105,6 +106,7 @@ void SortedDBFile::MoveFirst ()
 	if(!readmode) {
 		SwitchOnReadMode();
 	}
+
 	if(whichPage != 0 ) {
 		whichPage = 0;
 		currPage.EmptyItOut();
@@ -112,6 +114,7 @@ void SortedDBFile::MoveFirst ()
 		whichPage++;
 		is_bs_performed = false;
 	}
+
 }
 
 void SortedDBFile::Add (Record &rec)
@@ -121,6 +124,7 @@ void SortedDBFile::Add (Record &rec)
 		outPipe = new Pipe(100);
 		bigQ = new BigQ(*inPipe, *outPipe, om, runLen);
 	}
+
 	readmode = false;
 	totalRecords++;
 	inPipe->Insert (&rec);
@@ -131,19 +135,21 @@ int SortedDBFile::Close ()
 	if(!readmode) {
 		SwitchOnReadMode();
 	}
+
 	return file.Close();
 }
 
 void SortedDBFile::SwitchOnReadMode ()
 {
+	HeapDBFile *hFile = new HeapDBFile();
+	Record R[2];
 	int ret1, ret2;
+	string tempFilePath (filePath);
+
 	readmode = true;
 	inPipe->ShutDown ();
-	HeapDBFile *hFile = new HeapDBFile();
-	string tempFilePath (filePath);
 	tempFilePath.append(".temp");
 	hFile->Create((char*)tempFilePath.c_str(), heap, NULL);
-	Record R[2];
 	MoveFirst();
 	ret1 = GetNext(R[0]);
 	ret2 = outPipe->Remove(R + 1);
@@ -164,6 +170,7 @@ void SortedDBFile::SwitchOnReadMode ()
 			ret2 = outPipe->Remove(R + 1);
 		}
 	}
+
 	hFile->CopyMetaData((GenericDBFile*)this);
 	hFile->Close();
 	this->Close();
@@ -179,6 +186,7 @@ int SortedDBFile::GetNext (Record &fetchme)
 	if(!readmode) {
 		SwitchOnReadMode();
 	}
+
 	if(currPage.GetFirst(&fetchme)) {
 		readRecsOffPage++;
 		return 1;
@@ -192,6 +200,7 @@ int SortedDBFile::GetNext (Record &fetchme)
 			return currPage.GetFirst(&fetchme);
 		}
 	}
+
 }
 
 off_t SortedDBFile::BinarySearch (Record &fetchme, Record &literal)

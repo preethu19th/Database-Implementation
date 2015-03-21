@@ -6,27 +6,9 @@
 #include "Record.h"
 #include "Function.h"
 
-struct tparams {
-        CNF *selOp;
-        DBFile *inFile;
-        FILE *outFile;
-        Function *computeMe;
-        int *keepMe;
-        int numAttsInput;
-        int numAttsOutput;
-        OrderMaker *groupAtts;
-        Pipe *inPipe;
-        Pipe *inPipeL;
-        Pipe *inPipeR;
-        Pipe *outPipe;
-        Record *literal;
-        Schema *mySchema;
-};
-
 class RelationalOp {
 	protected:
 	pthread_t thread;
-	tparams *tp;
 	int runLength;
 	public:
 	inline void GenWaitUntilDone ();
@@ -37,58 +19,99 @@ class RelationalOp {
 	virtual void WaitUntilDone () = 0;
 	// tells how much internal memory the operation can use
 	virtual void Use_n_Pages (int n) = 0; 
-	
+
+	// run function for thread
+	virtual void Run () = 0;
 
 };
 
 class SelectFile : public RelationalOp {
+	DBFile *inFile;
+	Pipe *outPipe;
+	CNF *selOp;
+	Record *literal;
 	public:
 	void Run (DBFile &, Pipe &, CNF &, Record &);
 	void WaitUntilDone ();
 	void Use_n_Pages (int);
+	void Run ();
 };
 
 class SelectPipe : public RelationalOp {
+	Pipe *inPipe;
+	Pipe *outPipe;
+	CNF *selOp;
+	Record *literal;
 	public:
 	void Run (Pipe &, Pipe &, CNF &, Record &);
 	void WaitUntilDone ();
 	void Use_n_Pages (int);
+	void Run ();
 };
 class Project : public RelationalOp {
+	Pipe *inPipe;
+	Pipe *outPipe;
+	int *keepMe;
+	int numAttsInput;
+	int numAttsOutput;
 	public:
 	void Run (Pipe &, Pipe &, int *, int , int );
 	void WaitUntilDone ();
 	void Use_n_Pages (int);
+	void Run ();
 };
 class Join : public RelationalOp {
+	Pipe *inPipeL;
+	Pipe *inPipeR;
+	Pipe *outPipe;
+	CNF *selOp;
+	Record *literal;
 	public:
 	void Run (Pipe &, Pipe &, Pipe &, CNF &, Record &);
 	void WaitUntilDone ();
 	void Use_n_Pages (int);
+	void Run ();
 };
 class DuplicateRemoval : public RelationalOp {
+	Pipe *inPipe;
+	Pipe *outPipe;
+	Schema *mySchema;
 	public:
 	void Run (Pipe &, Pipe &, Schema &);
 	void WaitUntilDone ();
 	void Use_n_Pages (int);
+	void Run ();
 };
 class Sum : public RelationalOp {
+	Pipe *inPipe;
+	Pipe *outPipe;
+	Function *computeMe;
 	public:
 	void Run (Pipe &, Pipe &, Function &);
 	void WaitUntilDone ();
 	void Use_n_Pages (int);
+	void Run ();
 };
 class GroupBy : public RelationalOp {
 	ComparisonEngine ceng;
+	Pipe *inPipe;
+	Pipe *outPipe;
+	OrderMaker *groupAtts;
+	Function *computeMe;
 	public:
 	void Run (Pipe &, Pipe &, OrderMaker &, Function &);
 	void WaitUntilDone ();
 	void Use_n_Pages (int);
+	void Run ();
 };
 class WriteOut : public RelationalOp {
+	Pipe *inPipe;
+	FILE *outFile;
+	Schema *mySchema;
 	public:
 	void Run (Pipe &, FILE *, Schema &);
 	void WaitUntilDone ();
 	void Use_n_Pages (int);
+	void Run ();
 };
 #endif

@@ -10,160 +10,143 @@ inline void RelationalOp :: GenWaitUntilDone ()
 	if(thread) {
 		pthread_join (thread, NULL);
 	}
-	if(tp) {
-		delete tp;
-		tp = NULL;
-	}
+
 }
 
-void* SelectPipeRun(void* args)
+void* RelWorkerThread (void* args)
+{
+	RelationalOp *relationalOp = (RelationalOp *) args;
+	relationalOp->Run ();
+}
+
+void SelectPipe :: Run ()
 {
 	Record buffer;
-	tparams *tp = (tparams *) args;
 }
+
 
 void SelectPipe::Run (Pipe &inPipe, Pipe &outPipe, CNF &selOp, Record &literal)
 {
-	tp = new tparams();
-	tp->inPipe = &inPipe;
-	tp->outPipe = &outPipe;
-	tp->selOp = &selOp;
-	tp->literal = &literal;
-	if(pthread_create(&thread, NULL, SelectPipeRun, (void*) tp)) {
+	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create SelectPipe thread!\n");
 	}
 
 }
 
-void* SelectFileRun(void* args)
+void SelectFile :: Run()
 {
 	Record buffer;
-	tparams *tp = (tparams *) args;
 }
 
-void SelectFile::Run (DBFile &inFile, Pipe &outPipe, CNF &selOp, Record &literal)
+void SelectFile :: Run (DBFile &i, Pipe &o, CNF &s, Record &l)
 {
-	tp = new tparams();
-	tp->inFile = &inFile;
-	tp->outPipe = &outPipe;
-	tp->selOp = &selOp;
-	tp->literal = &literal;
-	if(pthread_create(&thread, NULL, SelectFileRun, (void*) tp)) {
+	inFile = &i;
+	outPipe = &o;
+	selOp = &s;
+	literal = &l;
+	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create SelectFile thread!\n");
 	}
 
 }
 
-void* ProjectRun(void* args)
+void Project :: Run ()
 {
 	Record buffer;
-	tparams *tp = (tparams *) args;
 }
 
-void Project::Run (Pipe &inPipe, Pipe &outPipe,
-				   int *keepMe, int numAttsInput, int numAttsOutput)
+void Project :: Run (Pipe &i, Pipe &o, int *k, int nI, int nO)
 {
-	tp = new tparams();
-	tp->inPipe = &inPipe;
-	tp->outPipe = &outPipe;
-	tp->keepMe = keepMe;
-	tp->numAttsInput = numAttsInput;
-    tp->numAttsOutput = numAttsOutput;
-	if(pthread_create(&thread, NULL, ProjectRun, (void*) tp)) {
+	inPipe = &i;
+	outPipe = &o;
+	keepMe = k;
+	numAttsInput = nI;
+	numAttsOutput = nO;
+	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create Project thread!\n");
 	}
+
 }
 
-void* JoinRun(void* args)
+void Join :: Run ()
 {
 	Record buffer;
-	tparams *tp = (tparams *) args;
 }
 
-void Join :: Run (Pipe &inPipeL, Pipe &inPipeR, Pipe &outPipe, CNF &selOp, Record &literal)
+void Join :: Run (Pipe &iL, Pipe &iR, Pipe &o, CNF &s, Record &l)
 {
-	tp = new tparams();
-	tp->inPipeL = &inPipeL;
-	tp->inPipeR = &inPipeR;
-	tp->outPipe = &outPipe;
-	tp->selOp = &selOp;
-	tp->literal = &literal;
-	if(pthread_create(&thread, NULL, JoinRun, (void*) tp)) {
+	inPipeR = &iR;
+	inPipeL = &iL;
+	outPipe = &o;
+	selOp = &s;
+	literal = &l;
+	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create Project thread!\n");
 	}
+
 }
 
-void* DuplicateRemovalRun(void* args)
+void DuplicateRemoval :: Run()
 {
 	Record buffer;
-	tparams *tp = (tparams *) args;
 }
 
-void DuplicateRemoval :: Run (Pipe &inPipe, Pipe &outPipe, Schema &mySchema)
+void DuplicateRemoval :: Run (Pipe &i, Pipe &o, Schema &m)
 {
-	tp = new tparams();
-	tp->inPipe = &inPipe;
-	tp->outPipe = &outPipe;
-	tp->mySchema = &mySchema;
-
-	if(pthread_create(&thread, NULL, DuplicateRemovalRun, (void*) tp)) {
+	inPipe = &i;
+	outPipe = &o;
+	mySchema = &m;
+	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create DuplicateRemoval thread!\n");
 	}
+
 }
 
-void* SumRun(void* args)
+void Sum :: Run()
 {
 	Record buffer;
-	tparams *tp = (tparams *) args;
 }
 
-void Sum :: Run (Pipe &inPipe, Pipe &outPipe, Function &computeMe)
+void Sum :: Run (Pipe &i, Pipe &o, Function &c)
 {
-	tp = new tparams();
-	tp->inPipe = &inPipe;
-	tp->outPipe = &outPipe;
-	tp->computeMe = &computeMe;
-	
-	if(pthread_create(&thread, NULL, SumRun, (void*) tp)) {
+	inPipe = &i;
+	outPipe = &o;
+	computeMe = &c;
+	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create Sum thread!\n");
 	}
+
 }
 
-void* GroupByRun(void* args)
+void GroupBy :: Run()
 {
 	Record buffer;
-	tparams *tp = (tparams *) args;
 }
 
-void GroupBy :: Run (Pipe &inPipe, Pipe &outPipe, OrderMaker &groupAtts, Function &computeMe)
+void GroupBy :: Run (Pipe &i, Pipe &o, OrderMaker &g, Function &c)
 {
-	tp = new tparams();
-	tp->inPipe = &inPipe;
-	tp->outPipe = &outPipe;
-	tp->groupAtts = &groupAtts;
-	tp->computeMe = &computeMe;
-
-	if(pthread_create(&thread, NULL, GroupByRun, (void*) tp)) {
+	inPipe = &i;
+	outPipe = &o;
+	groupAtts = &g;
+	computeMe = &c;
+	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create GroupBy thread!\n");
 	}
 
 }
  
-void* WriteOutRun(void* args)
+void WriteOut :: Run ()
 {
 	Record buffer;
-	tparams *tp = (tparams *) args;
 }
 
 
-void WriteOut :: Run (Pipe &inPipe, FILE *outFile, Schema &mySchema)
+void WriteOut :: Run (Pipe &i, FILE *o, Schema &m)
 {
-	tp = new tparams();
-	tp->inPipe = &inPipe;
-	tp->outFile = outFile;
-	tp->mySchema = &mySchema;
-
-	if(pthread_create(&thread, NULL, WriteOutRun, (void*) tp)) {
+	inPipe = &i;
+	outFile = o;
+	mySchema = &m;
+	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create WriteOut thread!\n");
 	}
 
