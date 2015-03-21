@@ -24,13 +24,22 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen, bool seqru
 	sortOrder = &sortorder;
 	if(!seqRun) {
 		pthread_create(&wthread, NULL, &workerThread, (void *)this);
-		pthread_join (wthread, NULL);
+		pthread_detach (wthread);
 	}
 }
 
 BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen)
 {
-	BigQ(in,out,sortorder,runlen,false);
+	seqRun = false;
+	whichPage = 0;
+	numOfRuns = 0;
+	readFromPipe = 0;
+	writeToPipe =0 ;
+	runLen = runlen;
+	inPipe = &in;
+	outPipe = &out;
+	sortOrder = &sortorder;
+	pthread_create(&wthread, NULL, &workerThread, (void *)this);
 }
 
 BigQ::~BigQ ()

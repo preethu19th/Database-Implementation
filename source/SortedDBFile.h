@@ -17,26 +17,18 @@
 
 using namespace std;
 
-
-struct SortedThreadArgs {
-	Pipe *inPipe, *outPipe;
-	OrderMaker *om;
-	BigQ *bigQ;
-	int runLen;
-};
-
 class SortedDBFile : public GenericDBFile
 {
+	BigQ *bigQ;
 protected:
-	SortedThreadArgs *sargs;
 	int WriteMetaFile (ofstream &metaFile);
 	int ReadMetaFile (ifstream &metaFile);
 	inline void ResetSVals ();
 public:
 
 	SortedDBFile ();
+	~SortedDBFile ();
 	OrderMaker om, queryOrderMaker, dummy, literalOrderMaker;
-	pthread_t sthread;
 	int runLen;
 	Pipe *inPipe, *outPipe;
 	bool readmode;

@@ -22,12 +22,25 @@ SortedDBFile::SortedDBFile ()
 	is_bs_performed = false;
 }
 
+SortedDBFile::~SortedDBFile ()
+{
+	if(inPipe != NULL) {
+		delete inPipe;
+		delete outPipe;
+		delete bigQ;
+		inPipe = NULL;
+		outPipe = NULL;
+		bigQ = NULL;
+	}
+}
+
 inline void SortedDBFile :: ResetSVals ()
 {
 	ResetVals ();
 	fileType = sorted;
 	inPipe = NULL;
 	outPipe = NULL;
+	bigQ = NULL;
 	readmode = true;
 }
 
@@ -101,26 +114,12 @@ void SortedDBFile::MoveFirst ()
 	}
 }
 
-void * BigQueueThread(void * vargs)
-{
-	SortedThreadArgs *sargs = (SortedThreadArgs *) vargs;
-	sargs->bigQ = new BigQ(*sargs->inPipe, *sargs->outPipe,
-						   *sargs->om, sargs->runLen);
-
-	delete sargs->bigQ;
-}
-
 void SortedDBFile::Add (Record &rec)
 {
 	if(inPipe == NULL) {
 		inPipe = new Pipe(100);
 		outPipe = new Pipe(100);
-		sargs = new SortedThreadArgs();
-		sargs->inPipe = inPipe;
-		sargs->outPipe = outPipe;
-		sargs->om = &om;
-		sargs->runLen = runLen;
-		pthread_create(&sthread, NULL, &BigQueueThread, (void*) sargs);
+		bigQ = new BigQ(*inPipe, *outPipe, om, runLen);
 	}
 	readmode = false;
 	totalRecords++;
@@ -170,13 +169,7 @@ void SortedDBFile::SwitchOnReadMode ()
 	this->Close();
 	remove(filePath.c_str());
 	rename(tempFilePath.c_str(), filePath.c_str());
-	pthread_join(sthread, NULL);
 	delete hFile;
-	delete inPipe;
-	delete outPipe;
-	delete sargs;
-	inPipe = NULL;
-	outPipe = NULL;
 	this->Open((char*)filePath.c_str());
 	MoveFirst ();
 }
