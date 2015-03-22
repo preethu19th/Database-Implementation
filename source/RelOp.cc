@@ -72,7 +72,14 @@ void SelectFile :: Run (DBFile &i, Pipe &o, CNF &s, Record &l)
 
 void Project :: Run ()
 {
-	Record buffer;
+	Record Rec;
+
+	while (inPipe->Remove(&Rec)) {
+		Rec.Project(keepMe, numAttsOutput, numAttsInput);
+		outPipe->Insert(&Rec);
+	}
+
+	outPipe->ShutDown ();
 }
 
 void Project :: Run (Pipe &i, Pipe &o, int *k, int nI, int nO)
@@ -82,6 +89,7 @@ void Project :: Run (Pipe &i, Pipe &o, int *k, int nI, int nO)
 	keepMe = k;
 	numAttsInput = nI;
 	numAttsOutput = nO;
+
 	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create Project thread!\n");
 	}
