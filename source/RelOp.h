@@ -42,6 +42,7 @@ class SelectPipe : public RelationalOp {
 	Pipe *outPipe;
 	CNF *selOp;
 	Record *literal;
+	ComparisonEngine ceng;
 	public:
 	void Run (Pipe &, Pipe &, CNF &, Record &);
 	void WaitUntilDone ();

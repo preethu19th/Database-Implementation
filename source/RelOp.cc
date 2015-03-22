@@ -21,12 +21,25 @@ void* RelWorkerThread (void* args)
 
 void SelectPipe :: Run ()
 {
-	Record buffer;
+	Record ResRecord;
+
+	while (inPipe->Remove(&ResRecord)) {
+		if (ceng.Compare (&ResRecord, literal, selOp)) {
+			outPipe->Insert(&ResRecord);
+		}
+	}
+
+	outPipe->ShutDown ();
 }
 
 
-void SelectPipe::Run (Pipe &inPipe, Pipe &outPipe, CNF &selOp, Record &literal)
+void SelectPipe::Run (Pipe &i, Pipe &o, CNF &s, Record &l)
 {
+	inPipe = &i;
+	outPipe = &o;
+	selOp = &s;
+	literal = &l;
+
 	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create SelectPipe thread!\n");
 	}
@@ -35,7 +48,12 @@ void SelectPipe::Run (Pipe &inPipe, Pipe &outPipe, CNF &selOp, Record &literal)
 
 void SelectFile :: Run()
 {
-	Record buffer;
+	Record ResRecord;
+
+	while (inFile->GetNext(ResRecord, *selOp, *literal))
+			outPipe->Insert(&ResRecord);
+
+	outPipe->ShutDown ();
 }
 
 void SelectFile :: Run (DBFile &i, Pipe &o, CNF &s, Record &l)
@@ -44,6 +62,7 @@ void SelectFile :: Run (DBFile &i, Pipe &o, CNF &s, Record &l)
 	outPipe = &o;
 	selOp = &s;
 	literal = &l;
+
 	if(pthread_create(&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror("Error! Failed to create SelectFile thread!\n");
 	}
