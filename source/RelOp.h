@@ -62,11 +62,20 @@ class Project : public RelationalOp {
 	void Run ();
 };
 class Join : public RelationalOp {
+	ComparisonEngine ceng;
+	OrderMaker lo, ro;
 	Pipe *inPipeL;
 	Pipe *inPipeR;
 	Pipe *outPipe;
 	CNF *selOp;
 	Record *literal;
+	bool firstBool;
+	int leftAtts, rightAtts, numAttsToKeep, *attsToKeep = NULL;
+	inline void PutIntoFile (char *, long int &, Pipe *);
+	inline void GetTempFileName (char *fname);
+	inline void SetJoinOpVals (Record *, Record *);
+	inline void CrossProduct (char *, char *);
+	inline void RemoveEquRecs (Record &, Pipe &, int &, char *, OrderMaker &);
 	public:
 	void Run (Pipe &, Pipe &, Pipe &, CNF &, Record &);
 	void WaitUntilDone ();

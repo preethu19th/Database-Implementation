@@ -1,4 +1,4 @@
-#include "a3-test.h"
+#include "test.h"
 #include "BigQ.h"
 #include "RelOp.h"
 #include <pthread.h>
@@ -94,7 +94,7 @@ void init_SF_c (char *pred_str, int numpgs) {
 // expected output: 31 records
 void q1 () {
 
-	char *pred_ps = "(ps_supplycost < 1.03)";
+	char *pred_ps = "(ps_supplycost <= 1.03)";
 	init_SF_ps (pred_ps, 100);
 
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
@@ -111,7 +111,7 @@ void q1 () {
 // expected output: 22 records
 void q2 () {
 
-	char *pred_p = "(p_retailprice > 931.01) AND (p_retailprice < 931.3)";
+	char *pred_p = "(p_retailprice >= 931.01) AND (p_retailprice <= 931.3)";
 	init_SF_p (pred_p, 100);
 
 	Project P_p;
@@ -150,7 +150,6 @@ void q3 () {
 			char *str_sum = "(s_acctbal + (s_acctbal * 1.05))";
 			get_cnf (str_sum, s->schema (), func);
 			func.Print ();
-	T.Use_n_Pages (1);
 	SF_s.Run (dbf_s, _s, cnf_s, lit_s);
 	T.Run (_s, _out, func);
 
@@ -186,6 +185,7 @@ void q4 () {
 		CNF cnf_p_ps;
 		Record lit_p_ps;
 		get_cnf ("(s_suppkey = ps_suppkey)", s->schema(), ps->schema(), cnf_p_ps, lit_p_ps);
+	J.Use_n_Pages (20);
 
 	int outAtts = sAtts + psAtts;
 	Attribute ps_supplycost = {"ps_supplycost", Double};
@@ -199,7 +199,6 @@ void q4 () {
 			char *str_sum = "(ps_supplycost)";
 			get_cnf (str_sum, &join_sch, func);
 			func.Print ();
-	T.Use_n_Pages (1);
 
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
 	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);

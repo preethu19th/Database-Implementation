@@ -64,14 +64,6 @@ void relation::get_cnf (CNF &cnf_pred, Record &literal)
 	cnf_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
 }
 
-void relation::get_cnf (CNF &cnf_pred, Record &literal, string cnfStr)
-{
-	YY_BUFFER_STATE buffer = yy_scan_string((char*)cnfStr.c_str());
-	yyparse();
-	yy_delete_buffer(buffer);
-	cnf_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
-}
-
 void relation::get_sort_order (OrderMaker &sortorder)
 {
 	cout << "\n specify sort ordering (when done press ctrl-D):\n\t ";
@@ -86,18 +78,57 @@ void relation::get_sort_order (OrderMaker &sortorder)
 	OrderMaker dummy;
 	sort_pred.GetSortOrders (sortorder, dummy);
 }
+
 void relation::get_sort_order (OrderMaker &sortorder,string cnfStr)
 {
-	YY_BUFFER_STATE buffer = yy_scan_string((char*)cnfStr.c_str());
+	init_lexical_parser ((char*)cnfStr.c_str());
 	yyparse();
-	yy_delete_buffer(buffer);
 	Record literal;
 	CNF sort_pred;
 	sort_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
 	OrderMaker dummy;
 	sort_pred.GetSortOrders (sortorder, dummy);
+	close_lexical_parser ();
 }
 
+
+void relation :: get_cnf (char *input, CNF &cnf_pred, Record &literal)
+{
+	init_lexical_parser (input);
+	if (yyparse() != 0) {
+		cout << " Error: can't parse your CNF.\n";
+		exit (1);
+	}
+	cnf_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
+	close_lexical_parser ();
+}
+
+void relation :: get_cnf (char *input, Function &fn_pred)
+{
+	init_lexical_parser_func (input);
+	if (yyfuncparse() != 0) {
+		cout << " Error: can't parse your CNF.\n";
+		exit (1);
+	}
+	fn_pred.GrowFromParseTree (finalfunc, *(schema ())); // constructs CNF predicate
+	close_lexical_parser_func ();
+}
+
+void relation :: get_file_cnf (const char *fpath, CNF &cnf_pred, Record &literal)
+{
+	yyin = fopen (fpath, "r");
+	if (yyin == NULL) {
+		cout << " Error: can't open file " << fpath << " for parsing \n";
+		exit (1);
+	}
+	if (yyparse() != 0) {
+		cout << " Error: can't parse your CNF.\n";
+		exit (1);
+	}
+	cnf_pred.GrowFromParseTree (final, schema (), literal); // constructs CNF predicate
+	// cnf_pred.GrowFromParseTree (final, l_schema (), r_schema (), literal); // constructs CNF predicate over two relations l_schema is the left reln's schema r the right's
+	//cnf_pred.Print ();
+}
 
 relation::~relation()
 {
@@ -155,7 +186,7 @@ void cleanup ()
 	delete  r;
 	delete  o;
 	delete  c;
-	free (catalog_path);
+	free(catalog_path);
 }
 
 void ResetCoutBuffer()
@@ -179,4 +210,34 @@ void GetExpectedOp(stringstream *eop,char *expectedFile, Schema *s,int &eopcnt)
 	}
 	ResetCoutBuffer();
 	fclose(tableFile);
+}
+
+void get_cnf (char *input, Schema *left, CNF &cnf_pred, Record &literal) {
+	init_lexical_parser (input);
+  	if (yyparse() != 0) {
+		cout << " Error: can't parse your CNF " << input << endl;
+		exit (1);
+	}
+	cnf_pred.GrowFromParseTree (final, left, literal); // constructs CNF predicate
+	close_lexical_parser ();
+}
+
+void get_cnf (char *input, Schema *left, Schema *right, CNF &cnf_pred, Record &literal) {
+	init_lexical_parser (input);
+  	if (yyparse() != 0) {
+		cout << " Error: can't parse your CNF " << input << endl;
+		exit (1);
+	}
+	cnf_pred.GrowFromParseTree (final, left, right, literal); // constructs CNF predicate
+	close_lexical_parser ();
+}
+
+void get_cnf (char *input, Schema *left, Function &fn_pred) {
+	init_lexical_parser_func (input);
+	if (yyfuncparse() != 0) {
+		cout << " Error: can't parse your arithmetic expr. " << input << endl;
+		exit (1);
+	}
+	fn_pred.GrowFromParseTree (finalfunc, *left); // constructs CNF predicate
+	close_lexical_parser_func ();
 }

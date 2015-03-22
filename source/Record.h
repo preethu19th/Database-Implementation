@@ -70,6 +70,9 @@ public:
 	void Print (Schema *mySchema);
 	void PrintWoComment (Schema *mySchema);
 	void Print (Schema *mySchema,bool printComment);
+
+	// get num of atts using bit
+	int GetNumAtts ();
 };
 
 #endif

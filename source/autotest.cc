@@ -136,7 +136,7 @@ void AutoTest::test3()
 	tblnum >> findx;
 	getline(cnfFile, cnfStr);
 	rel = rel_ptr [findx - 1];
-	rel->get_cnf (cnf, literal,cnfStr.c_str());
+	rel->get_cnf ((char *)cnfStr.c_str(),cnf, literal);
 	dbfile.Open (rel->path());
 	dbfile.MoveFirst ();
 	int counter = 0;

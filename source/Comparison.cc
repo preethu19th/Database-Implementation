@@ -144,6 +144,17 @@ std::istream& operator>>(std::istream& is, OrderMaker& om)
 	return is;
 }
 
+void OrderMaker :: GetGroupCols (int *a, int &n, int g)
+{
+	int attsToKeep[numAtts + g];
+	a = attsToKeep;
+	n = numAtts;
+	for(int i = 0; i < numAtts; i++) {
+		attsToKeep[i + g] = whichAtts[i];
+	}
+
+}
+
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right)
 {
 

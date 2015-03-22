@@ -24,15 +24,19 @@ extern char *tpch_dir;
 extern char *dbfile_dir;
 extern streambuf *sbuf;
 
-typedef struct yy_buffer_state * YY_BUFFER_STATE;
 extern "C" {
-	int yyparse();
-	YY_BUFFER_STATE yy_scan_string(char * str);
-	void yy_delete_buffer(YY_BUFFER_STATE buffer);
+	int yyparse(void);   // defined in y.tab.c
+	int yyfuncparse(void);   // defined in yyfunc.tab.c
+	void init_lexical_parser (char *); // defined in lex.yy.c (from Lexer.l)
+	void close_lexical_parser (); // defined in lex.yy.c
+	void init_lexical_parser_func (char *); // defined in lex.yyfunc.c (from Lexerfunc.l)
+	void close_lexical_parser_func (); // defined in lex.yyfunc.c
 }
+
 extern struct AndList *final;
 extern struct FuncOperator *finalfunc;
 extern FILE *yyin;
+
 
 typedef struct {
 	Pipe *pipe;
@@ -56,7 +60,9 @@ public:
 	Schema* schema ();
 	void info ();
 	void get_cnf (CNF &cnf_pred, Record &literal);
-	void get_cnf (CNF &cnf_pred, Record &literal, string cnfStr);
+	void get_cnf (char *input, CNF &cnf_pred, Record &literal);
+	void get_cnf (char *input, Function &fn_pred);
+	void get_file_cnf (const char *fpath, CNF &cnf_pred, Record &literal);
 	void get_sort_order (OrderMaker &sortorder);
 	void get_sort_order (OrderMaker &sortorder,string cnfStr);
 	~relation();
@@ -79,5 +85,8 @@ extern void cleanup ();
 extern void ResetCoutBuffer();
 extern void SetCoutBuffer(stringstream *buf);
 extern void GetExpectedOp(stringstream *eop,char *expectedFile, Schema *s,int &eopcnt);
+extern void get_cnf (char *input, Schema *left, CNF &cnf_pred, Record &literal);
+extern void get_cnf (char *input, Schema *left, Schema *right, CNF &cnf_pred, Record &literal);
+extern void get_cnf (char *input, Schema *left, Function &fn_pred);
 
 #endif

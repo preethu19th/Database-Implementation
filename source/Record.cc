@@ -340,6 +340,7 @@ void Record :: Project (int *attsToKeep, int numAttsToKeep, int numAttsNow) {
 }
 
 
+
 // consumes right record and leaves the left record as it is
 void Record :: MergeRecords (Record *left, Record *right, int numAttsLeft, int numAttsRight, int *attsToKeep, int numAttsToKeep, int startOfRight) {
 	delete [] bits;
@@ -483,4 +484,16 @@ void Record :: PrintWoComment (Schema *mySchema)
 void Record :: Print (Schema *mySchema)
 {
 	Print(mySchema,true);
+}
+
+int Record :: GetNumAtts ()
+{
+	int numAtts = 0;
+	if (bits != NULL){
+		char *firstValPtr = bits + sizeof(int);
+		int firstOffset = *((int *) firstValPtr);
+		numAtts = (firstOffset / sizeof(int)) - 1;
+	}
+
+	return numAtts;
 }
