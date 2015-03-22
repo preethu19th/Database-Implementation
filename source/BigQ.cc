@@ -1,8 +1,6 @@
 #include "BigQ.h"
 #include <stdio.h>
-
-
-Schema nationS ("catalog", "nation");
+#include <sys/time.h>
 
 void *workerThread(void *temp)
 {
@@ -22,6 +20,10 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen, bool seqru
 	inPipe = &in;
 	outPipe = &out;
 	sortOrder = &sortorder;
+	struct timeval tval;
+	gettimeofday(&tval, NULL);
+	sprintf(fname, "tmp_bigq_%ld_%.6ld", tval.tv_sec, tval.tv_usec);
+
 	if(!seqRun) {
 		pthread_create(&wthread, NULL, &workerThread, (void *)this);
 		pthread_detach (wthread);
@@ -39,6 +41,10 @@ BigQ :: BigQ (Pipe &in, Pipe &out, OrderMaker &sortorder, int runlen)
 	inPipe = &in;
 	outPipe = &out;
 	sortOrder = &sortorder;
+	struct timeval tval;
+	gettimeofday(&tval, NULL);
+	sprintf(fname, "tmp_bigq_%ld_%.6ld", tval.tv_sec, tval.tv_usec);
+
 	pthread_create(&wthread, NULL, &workerThread, (void *)this);
 }
 
@@ -50,7 +56,7 @@ void BigQ :: StartProcessing(void)
 {
 	Record *currRec = new Record();
 
-	tmpFile.Open(0, "temp_bigQfile");
+	tmpFile.Open(0, fname);
 	int currRunPageLen = runLen;
 	bool is_terminated = !inPipe->Remove(currRec);
 	while(!is_terminated) {
@@ -116,7 +122,7 @@ void BigQ :: StartProcessing(void)
 	delete []currPageInRun;
 	delete []isRunCompleted;
 	tmpFile.Close();
-	remove("temp_bigQfile");
+	remove(fname);
 	outPipe->ShutDown ();
 }
 

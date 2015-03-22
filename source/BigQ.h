@@ -36,6 +36,7 @@ class BigQ
 	OrderMaker *sortOrder;
 	Schema *mySchema;
 	pthread_t wthread;
+	char fname[128];
 	priority_queue<BigQRecord*, vector<BigQRecord*>, BigQRecord> sortedBigQ;
 	Page tmpPage;
 	File tmpFile;
