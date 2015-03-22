@@ -201,6 +201,10 @@ void Function :: GrowFromParseTree (struct FuncOperator *parseTree, Schema &mySc
 }
 
 void Function :: Print () {
+	for(int i =0; i<numOps; i++) {
+		
+		cout << opList[i].recInput << " ___ "  << opList[i].myOp << " ________ " << opList[i].litInput <<endl;
+	}	
 
 }
 

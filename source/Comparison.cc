@@ -144,15 +144,14 @@ std::istream& operator>>(std::istream& is, OrderMaker& om)
 	return is;
 }
 
-void OrderMaker :: GetGroupCols (int *a, int &n, int g)
+int* OrderMaker :: GetGroupCols (int &n, int g)
 {
-	int attsToKeep[numAtts + g];
-	a = attsToKeep;
-	n = numAtts;
+	n = numAtts + g;
+	int *a = new int[n];
 	for(int i = 0; i < numAtts; i++) {
-		attsToKeep[i + g] = whichAtts[i];
+		a[i + g] = whichAtts[i];
 	}
-
+	return a;
 }
 
 int CNF :: GetSortOrders (OrderMaker &left, OrderMaker &right)

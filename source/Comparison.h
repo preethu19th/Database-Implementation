@@ -69,7 +69,7 @@ public:
 	void Print ();
 
 	// prepare cols to keep
-	void GetGroupCols(int *,int &, int);
+	int* GetGroupCols(int &, int);
 };
 
 class Record;

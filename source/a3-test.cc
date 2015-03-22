@@ -204,6 +204,7 @@ void q4 () {
 	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
 	T.Run (_s_ps, _out, func);
 
+	SF_s.WaitUntilDone ();
 	SF_ps.WaitUntilDone ();
 	J.WaitUntilDone ();
 	T.WaitUntilDone ();
@@ -258,7 +259,6 @@ void q6 () {
 	cout << " query6 \n";
 	char *pred_s = "(s_suppkey = s_suppkey)";
 	init_SF_s (pred_s, 100);
-	SF_s.Run (dbf_s, _s, cnf_s, lit_s); // 10k recs qualified
 
 	char *pred_ps = "(ps_suppkey = ps_suppkey)";
 	init_SF_ps (pred_ps, 100);
@@ -270,6 +270,7 @@ void q6 () {
 		CNF cnf_p_ps;
 		Record lit_p_ps;
 		get_cnf ("(s_suppkey = ps_suppkey)", s->schema(), ps->schema(), cnf_p_ps, lit_p_ps);
+	J.Use_n_Pages(20);
 
 	int outAtts = sAtts + psAtts;
 	Attribute s_nationkey = {"s_nationkey", Int};
@@ -279,18 +280,23 @@ void q6 () {
 
 	GroupBy G;
 		// _s (input pipe)
-		Pipe _out (1);
+		Pipe _out (25);
 		Function func;
 			char *str_sum = "(ps_supplycost)";
 			get_cnf (str_sum, &join_sch, func);
 			func.Print ();
-			OrderMaker grp_order (&join_sch);
-	G.Use_n_Pages (1);
+			OrderMaker grp_order;
+			string groupStr("(s_nationkey)");
+			s->get_sort_order(grp_order, groupStr);
+			grp_order.Print();
+	G.Use_n_Pages (20);
 
+	SF_s.Run (dbf_s, _s, cnf_s, lit_s); // 10k recs qualified
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
 	J.Run (_s, _ps, _s_ps, cnf_p_ps, lit_p_ps);
 	G.Run (_s_ps, _out, grp_order, func);
 
+	SF_s.WaitUntilDone ();
 	SF_ps.WaitUntilDone ();
 	J.WaitUntilDone ();
 	G.WaitUntilDone ();

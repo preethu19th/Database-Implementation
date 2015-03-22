@@ -309,18 +309,15 @@ void GroupBy :: Run ()
 	char *tblName = "dummy\0";
 	char colVal[128];
 	int numAtts, i = 0;
-	int *attsToKeep;
-
-	groupAtts->GetGroupCols (attsToKeep, numAtts, 1);
+	int *attsToKeep = groupAtts->GetGroupCols (numAtts, 1);
 	attsToKeep[0] = 0;
 
 	while (sortedPipe.Remove (rec + i) ) {
 		int tempInt = 0;
 		double tempDbl = 0;
 		curr = rec + i;
-		if (prev == NULL) prev = curr;
+		if (!prev) prev = curr;
 		if (ceng.Compare (curr, prev, groupAtts) != 0) {
-
 			Attribute attr = {colName, retVal};
 			Schema sch (tblName, 1, &attr);
 			if (retVal == Int) {
@@ -344,14 +341,14 @@ void GroupBy :: Run ()
 		i = ( (i+1) % 2);
 	}
 
-	if (ceng.Compare (curr, prev, groupAtts) != 0) {
 
+	if(prev) {
 		Attribute attr = {colName, retVal};
 		Schema sch (tblName, 1, &attr);
 		if (retVal == Int) {
-			sprintf (colVal, "%ld|\0", sumDbl);
+			sprintf (colVal, "%Ld|\0", sumDbl);
 		} else {
-			sprintf (colVal, "%lf|\0", sumDbl);
+			sprintf (colVal, "%Lf|\0", sumDbl);
 		}
 
 		Record *singleRec = new Record ();
@@ -363,6 +360,7 @@ void GroupBy :: Run ()
 		sumDbl = 0;
 	}
 
+	delete attsToKeep;
 	outPipe->ShutDown ();
 }
 
@@ -372,6 +370,7 @@ void GroupBy :: Run (Pipe &i, Pipe &o, OrderMaker &g, Function &c)
 	outPipe = &o;
 	groupAtts = &g;
 	computeMe = &c;
+	groupAtts->Print ();
 	if (pthread_create (&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror ("Error! Failed to create GroupBy thread!\n");
 	}
