@@ -180,7 +180,7 @@ bigq_unittest.o : source/BigQ_unittest.cc $(GTEST_HEADERS)
 comparison_unittest.o : source/Comparison_unittest.cc $(GTEST_HEADERS)
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/Comparison_unittest.cc -o bin/comparison_unittest.o
 
-unittests : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o GenericDBFile.o HeapDBFile.o SortedDBFile.o test.o heapdbfile_unittest.o sorteddbfile_unittest.o bigq_unittest.o comparison_unittest.o gtest_main.a
-	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/heapdbfile_unittest.o bin/bigq_unittest.o bin/comparison_unittest.o bin/sorteddbfile_unittest.o bin/gtest_main.a -o bin/unittests
+unittests : makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o BigQ.o Pipe.o y.tab.o lex.yy.o GenericDBFile.o HeapDBFile.o SortedDBFile.o test.o heapdbfile_unittest.o sorteddbfile_unittest.o bigq_unittest.o comparison_unittest.o gtest_main.a yyfunc.tab.o lex.yyfunc.o Function.o
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -lpthread bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/Record.o bin/File.o bin/GenericDBFile.o  bin/HeapDBFile.o bin/SortedDBFile.o bin/DBFile.o bin/BigQ.o bin/Pipe.o bin/y.tab.o bin/lex.yy.o bin/test.o bin/heapdbfile_unittest.o bin/bigq_unittest.o bin/comparison_unittest.o bin/sorteddbfile_unittest.o bin/gtest_main.a bin/yyfunc.tab.o bin/lex.yyfunc.o bin/Function.o -o bin/unittests
 	./bin/unittests
 

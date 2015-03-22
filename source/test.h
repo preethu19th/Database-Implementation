@@ -60,6 +60,7 @@ public:
 	Schema* schema ();
 	void info ();
 	void get_cnf (CNF &cnf_pred, Record &literal);
+	void get_cnf (CNF &cnf_pred, Record &literal, string);
 	void get_cnf (char *input, CNF &cnf_pred, Record &literal);
 	void get_cnf (char *input, Function &fn_pred);
 	void get_file_cnf (const char *fpath, CNF &cnf_pred, Record &literal);

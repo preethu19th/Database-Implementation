@@ -91,6 +91,10 @@ void relation::get_sort_order (OrderMaker &sortorder,string cnfStr)
 	close_lexical_parser ();
 }
 
+void relation :: get_cnf (CNF &cnf_pred, Record &literal,string cnfStr)
+{
+	get_cnf((char*)cnfStr.c_str(), cnf_pred, literal);
+}
 
 void relation :: get_cnf (char *input, CNF &cnf_pred, Record &literal)
 {
