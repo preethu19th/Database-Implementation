@@ -50,8 +50,9 @@ void SelectFile :: Run()
 {
 	Record ResRecord;
 
+	inFile->MoveFirst();
 	while (inFile->GetNext(ResRecord, *selOp, *literal))
-			outPipe->Insert(&ResRecord);
+		outPipe->Insert(&ResRecord);
 
 	outPipe->ShutDown ();
 }
