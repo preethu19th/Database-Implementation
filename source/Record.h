@@ -74,6 +74,7 @@ public:
 	void Print (Schema *mySchema);
 	void PrintWoComment (Schema *mySchema);
 	void Print (Schema *mySchema,bool printComment);
+	void Print (Schema *mySchema, FILE *outF);
 
 	// get num of atts using bit
 	int GetNumAtts ();

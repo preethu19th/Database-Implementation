@@ -258,7 +258,31 @@ void Join :: Run (Pipe &iL, Pipe &iR, Pipe &o, CNF &s, Record &l)
 
 void DuplicateRemoval :: Run ()
 {
-	Record buffer;
+	Record rec[2];
+	Record *curr = NULL, *prev = NULL;
+	ComparisonEngine ce;
+	OrderMaker so(mySchema);
+	int i = 0;
+	Pipe bqOutPipe(100);
+	BigQ bq(*inPipe, bqOutPipe, so, runLength);
+
+	while (bqOutPipe.Remove (&rec[i%2])) {
+		prev = curr;
+		curr = &rec[i%2];
+
+		if (prev && curr) {
+			if (ce.Compare (prev, curr, &so) != 0)
+				outPipe->Insert(prev);
+		}
+
+		i++;
+	}
+
+	/* Write the last set of records */
+	if (ce.Compare (prev, curr, &so) == 0)
+		outPipe->Insert(prev);
+
+	outPipe->ShutDown ();
 }
 
 void DuplicateRemoval :: Run (Pipe &i, Pipe &o, Schema &m)
@@ -266,10 +290,10 @@ void DuplicateRemoval :: Run (Pipe &i, Pipe &o, Schema &m)
 	inPipe = &i;
 	outPipe = &o;
 	mySchema = &m;
+
 	if (pthread_create (&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror ("Error! Failed to create DuplicateRemoval thread!\n");
 	}
-
 }
 
 void Sum :: Run ()
@@ -397,6 +421,11 @@ void GroupBy :: Run (Pipe &i, Pipe &o, OrderMaker &g, Function &c)
 void WriteOut :: Run ()
 {
 	Record buffer;
+
+	while (inPipe->Remove (&buffer)) {
+		buffer.Print(mySchema, outFile);
+	}
+
 }
 
 

@@ -508,6 +508,53 @@ void Record :: Print (Schema *mySchema, bool printComment)
 	cout << "\n";
 }
 
+void Record :: Print (Schema *mySchema, FILE *outF)
+{
+
+	int n = mySchema->GetNumAtts();
+	Attribute *atts = mySchema->GetAtts();
+
+	// loop through all of the attributes
+	for (int i = 0; i < n; i++) {
+
+		// print the attribute name
+		fprintf (outF,"%s: ", atts[i].name);
+
+		// use the i^th slot at the head of the record to get the
+		// offset to the correct attribute in the record
+		int pointer = ((int *) bits)[i + 1];
+
+		// here we determine the type, which given in the schema;
+		// depending on the type we then print out the contents
+		fprintf (outF, "[");
+
+		// first is integer
+		if (atts[i].myType == Int) {
+			int *myInt = (int *) &(bits[pointer]);
+			fprintf (outF, "%d", *myInt);
+
+		// then is a double
+		} else if (atts[i].myType == Double) {
+			double *myDouble = (double *) &(bits[pointer]);
+			fprintf (outF, "%f", *myDouble);
+
+		// then is a character string
+		} else if (atts[i].myType == String) {
+			char *myString = (char *) &(bits[pointer]);
+			fprintf (outF, "%s", myString);
+		}
+
+		fprintf (outF, "]");
+
+		// print out a comma as needed to make things pretty
+		if (i != n - 1) {
+			fprintf (outF, ", ");
+		}
+	}
+
+	fprintf (outF, "\n");
+}
+
 void Record :: PrintWoComment (Schema *mySchema)
 {
 	Print(mySchema,false);

@@ -232,6 +232,7 @@ void q5 () {
 		// inpipe = __ps
 		Pipe ___ps (pipesz);
 		Schema __ps_sch ("__ps", 1, &IA);
+	D.Use_n_Pages (20);
 
 	WriteOut W;
 		// inpipe = ___ps

@@ -1,6 +1,10 @@
 # COP-6726-Spring2015
 [![Build Status](https://magnum.travis-ci.com/preethu19th/COP-6726-Spring2015.svg?token=kpbq8bmL5S9Txs63cGxQ&branch=master)](https://magnum.travis-ci.com/preethu19th/COP-6726-Spring2015)
 
+To run the Project 3 test source: a3-test 
+
+	make test.out
+	./bin/test.out [1-8]
 
 To run the Project 2 Part-2 test: a2-2test program 
 This is used to test the SortedDBFile class
