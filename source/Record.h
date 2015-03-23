@@ -36,6 +36,10 @@ public:
 	Record ();
 	~Record();
 
+	// Adding for vector
+	Record (const Record &);
+    Record & operator = (const Record &);
+
 	// suck the contents of the record fromMe into this; note that after
 	// this call, fromMe will no longer have anything inside of it
 	void Consume (Record *fromMe);

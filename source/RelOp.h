@@ -5,6 +5,7 @@
 #include "DBFile.h"
 #include "Record.h"
 #include "Function.h"
+#include <vector>
 
 class RelationalOp {
 	protected:
@@ -70,12 +71,15 @@ class Join : public RelationalOp {
 	CNF *selOp;
 	Record *literal;
 	bool firstBool;
+	vector<Record> lrecs,rrecs;
 	int leftAtts, rightAtts, numAttsToKeep, *attsToKeep = NULL;
 	inline void PutIntoFile (char *, long int &, Pipe *);
 	inline void GetTempFileName (char *fname);
 	inline void SetJoinOpVals (Record *, Record *);
 	inline void CrossProduct (char *, char *);
-	inline void RemoveEquRecs (Record &, Pipe &, int &, char *, OrderMaker &);
+	inline void CrossProduct ();
+	inline void RemoveEquRecs (vector<Record> *,Record &, Pipe &,
+							int &, OrderMaker &);
 	public:
 	void Run (Pipe &, Pipe &, Pipe &, CNF &, Record &);
 	void WaitUntilDone ();

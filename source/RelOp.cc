@@ -132,6 +132,25 @@ inline void Join :: SetJoinOpVals (Record *left, Record *right)
 	}
 }
 
+inline void Join :: CrossProduct ()
+{
+	for(unsigned int i = 0; i != lrecs.size(); i++) {
+		for(unsigned int j = 0; j != rrecs.size(); j++) {
+			if (firstBool) {
+				SetJoinOpVals (&lrecs[i], &rrecs[j]);
+				firstBool = false;
+			}
+			Record op;
+			op.MergeRecords (&lrecs[i], &rrecs[j], leftAtts, rightAtts,
+					attsToKeep, numAttsToKeep, leftAtts);
+			outPipe->Insert (&op);
+		}
+	}
+	lrecs.clear();
+	rrecs.clear();
+}
+
+
 inline void Join :: CrossProduct (char *lFileName, char *rFileName)
 {
 	DBFile lFile,rFile;
@@ -158,21 +177,19 @@ inline void Join :: CrossProduct (char *lFileName, char *rFileName)
 
 }
 
-inline void Join :: RemoveEquRecs (Record &r1, Pipe &p,
-									int &ret, char *fname, OrderMaker &o)
+inline void Join :: RemoveEquRecs (vector<Record> *v, Record &r1, Pipe &p,
+								int &ret, OrderMaker &o)
 {
 	Record r2;
-	DBFile file;
-
-	file.Create (fname, heap, NULL);
+	bool add = v != NULL;
+	v->clear ();
+	v->push_back (r1);
 	ret = p.Remove (&r2);
-	while (ret && ceng.Compare (&r1, &r2, &o) == 0) {
-		file.Add (r2);
+	while (ret && ceng.Compare (&(v->front ()), &r2, &o) == 0) {
+		if (add) v->push_back (r2);
 		ret = p.Remove (&r2);
 	}
 
-	file.Add (r1);
-	file.Close ();
 	if (ret) {
 		r1.Consume (&r2);
 	}
@@ -181,14 +198,10 @@ inline void Join :: RemoveEquRecs (Record &r1, Pipe &p,
 void Join :: Run ()
 {
 	firstBool = true;
-	char lFileName[128], rFileName[128];
-	char mlFileName[128], mrFileName[128];
-	int ret1, ret2;
-	Record rec[2];
-	GetTempFileName (lFileName);
-	GetTempFileName (rFileName);
 	if (selOp->GetSortOrders (lo, ro)) {
 		//Sort merge join
+		int ret1, ret2;
+		Record rec[2];
 		Pipe sortedLPipe (100), sortedRPipe (100);
 		BigQ sortedLQ (*inPipeL, sortedLPipe, lo, runLength);
 		BigQ sortedRQ (*inPipeR, sortedRPipe, ro, runLength);
@@ -198,29 +211,33 @@ void Join :: Run ()
 		while (ret1 && ret2) {
 			int recCmp = ceng.Compare (rec + 0, &lo, rec + 1, &ro);
 			if (recCmp == 0) {
-				RemoveEquRecs (rec[0], sortedLPipe, ret1, lFileName + 0, lo);
-				RemoveEquRecs (rec[1], sortedRPipe, ret2, rFileName + 0, ro);
-				CrossProduct (lFileName + 0, rFileName + 0);
+				RemoveEquRecs (&lrecs, rec[0], sortedLPipe, ret1,  lo);
+				RemoveEquRecs (&rrecs, rec[1], sortedRPipe, ret2,  ro);
+				CrossProduct ();
 			} else if (recCmp < 1) {
-				RemoveEquRecs (rec[0], sortedLPipe, ret1, lFileName + 0, lo);
+				RemoveEquRecs (&lrecs, rec[0], sortedLPipe, ret1, lo);
 			} else {
-				RemoveEquRecs (rec[1], sortedRPipe, ret2, rFileName + 0, ro);
+				RemoveEquRecs (&rrecs, rec[1], sortedRPipe, ret2, ro);
 			}
 		}
 	} else {
 		//Block nest join
+		char lFileName[128], rFileName[128];
+		char mlFileName[128], mrFileName[128];
+		GetTempFileName (lFileName);
+		GetTempFileName (rFileName);
+
 		long int lCnt = 0, rCnt = 0;
 		PutIntoFile (lFileName + 0, lCnt, inPipeL);
 		PutIntoFile (rFileName + 0, rCnt, inPipeR);
 		CrossProduct (lFileName + 0, rFileName + 0);
+		sprintf (mlFileName, "%s.metadata", lFileName);
+		sprintf (mrFileName, "%s.metadata", rFileName);
+		remove (lFileName);
+		remove (rFileName);
+		remove (mlFileName);
+		remove (mrFileName);
 	}
-
-	sprintf (mlFileName, "%s.metadata", lFileName);
-	sprintf (mrFileName, "%s.metadata", rFileName);
-	remove (lFileName);
-	remove (rFileName);
-	remove (mlFileName);
-	remove (mrFileName);
 
 	if (attsToKeep) delete attsToKeep;
 	outPipe->ShutDown ();

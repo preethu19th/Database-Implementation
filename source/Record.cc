@@ -19,6 +19,37 @@ Record :: ~Record () {
 }
 
 
+Record :: Record (const Record & rec)
+{
+  bits = NULL;
+  if (rec.bits == NULL) {
+      return;
+  }
+
+  bits = new (std::nothrow) char[((int *) rec.bits)[0]];
+  if (bits == NULL) {
+      cout << "ERROR : Not enough memory. EXIT !!!\n";
+      exit(1);
+  }
+
+  memcpy (bits, rec.bits, ((int *) rec.bits)[0]);
+}
+
+Record & Record :: operator = (Record const & r)
+{
+	if (this != &r) {
+		delete [] bits;
+		bits = NULL;
+		if(NULL != r.bits) {
+			bits = new (std::nothrow) char[((int *) r.bits)[0]];
+			memcpy (bits, r.bits, ((int *) r.bits)[0]);
+		}
+	}
+
+	return *this;
+}
+
+
 int Record :: ComposeRecord (Schema *mySchema, const char *src) {
 
 	// this is temporary storage
