@@ -101,7 +101,7 @@ void q1 () {
 	SF_ps.WaitUntilDone ();
 
 	int cnt = clear_pipe (_ps, ps->schema (), true);
-	cout << "\n\n query1 returned " << cnt << " records \n";
+	cout << "\n\n query1 returned " << cnt << " records (expected count 31)\n";
 
 	dbf_ps.Close ();
 }
@@ -131,7 +131,7 @@ void q2 () {
 	Schema out_sch ("out_sch", numAttsOut, att3);
 	int cnt = clear_pipe (_out, &out_sch, true);
 
-	cout << "\n\n query2 returned " << cnt << " records \n";
+	cout << "\n\n query2 returned " << cnt << " records (expected cnt 22)\n";
 
 	dbf_p.Close ();
 }
@@ -159,7 +159,7 @@ void q3 () {
 	Schema out_sch ("out_sch", 1, &DA);
 	int cnt = clear_pipe (_out, &out_sch, true);
 
-	cout << "\n\n query3 returned " << cnt << " records \n";
+	cout << "\n\n query3 returned " << cnt << " records (expected sum : 9.24623e+07)\n";
 
 	dbf_s.Close ();
 }
@@ -211,7 +211,7 @@ void q4 () {
 
 	Schema sum_sch ("sum_sch", 1, &DA);
 	int cnt = clear_pipe (_out, &sum_sch, true);
-	cout << " query4 returned " << cnt << " recs \n";
+	cout << " query4 returned " << cnt << " recs (expected sum 4.00406e+08)\n";
 }
 
 // select distinct ps_suppkey from partsupp where ps_supplycost < 100.11;
