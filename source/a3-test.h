@@ -12,7 +12,7 @@
 
 using namespace std;
 
-// test settings file should have the 
+// test settings file should have the
 // catalog_path, dbfile_dir and tpch_dir information in separate lines
 const char *settings = "test.cat";
 
@@ -44,7 +44,7 @@ class relation {
 private:
 	char *rname;
 	char *prefix;
-	char rpath[100]; 
+	char rpath[100];
 	Schema *rschema;
 public:
 	relation (char *_name, Schema *_schema, char *_prefix) :
@@ -151,14 +151,14 @@ void get_cnf (char *input, Schema *left, Function &fn_pred) {
 
 relation *rel;
 
-char *supplier = "supplier"; 
-char *partsupp = "partsupp"; 
-char *part = "part"; 
-char *nation = "nation"; 
-char *customer = "customer"; 
-char *orders = "orders"; 
-char *region = "region"; 
-char *lineitem = "lineitem"; 
+char *supplier = "supplier";
+char *partsupp = "partsupp";
+char *part = "part";
+char *nation = "nation";
+char *customer = "customer";
+char *orders = "orders";
+char *region = "region";
+char *lineitem = "lineitem";
 
 relation *s, *p, *ps, *n, *li, *r, *o, *c;
 

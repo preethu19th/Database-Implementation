@@ -132,7 +132,7 @@ void AutoTest::test3()
 	Record literal,temp;
 	DBFile dbfile;
 
-	
+
 	tblnum >> findx;
 	getline(cnfFile, cnfStr);
 	rel = rel_ptr [findx - 1];

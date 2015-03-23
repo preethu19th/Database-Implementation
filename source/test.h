@@ -14,7 +14,7 @@
 
 using namespace std;
 
-// test settings file should have the 
+// test settings file should have the
 // catalog_path, dbfile_dir and tpch_dir information in separate lines
 extern const char *settings;
 

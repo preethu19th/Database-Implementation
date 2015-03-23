@@ -14,7 +14,6 @@
 #include "SortInfo.h"
 
 using namespace std;
-static Schema mySchema ("catalog", "lineitem");
 
 SortedDBFile::SortedDBFile ()
 {

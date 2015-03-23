@@ -50,7 +50,7 @@ Schema :: Schema (char *fpath, int num_atts, Attribute *atts) {
 		}
 		else if (atts[i].myType == String) {
 			myAtts[i].myType = String;
-		} 
+		}
 		else {
 			cout << "Bad attribute type for " << atts[i].myType << "\n";
 			delete [] myAtts;
@@ -63,7 +63,7 @@ Schema :: Schema (char *fpath, int num_atts, Attribute *atts) {
 Schema :: Schema (char *fName, char *relName) {
 
 	FILE *foo = fopen (fName, "r");
-	
+
 	// this is enough space to hold any tokens
 	char space[200];
 
@@ -74,8 +74,8 @@ Schema :: Schema (char *fName, char *relName) {
 	if (strcmp (space, "BEGIN")) {
 		cout << "Unfortunately, this does not seem to be a schema file.\n";
 		exit (1);
-	}	
-		
+	}
+
 	while (1) {
 
 		// check to see if this is the one we want
@@ -114,7 +114,7 @@ Schema :: Schema (char *fName, char *relName) {
 	while (1) {
 		fscanf (foo, "%s", space);
 		if (!strcmp (space, "END")) {
-			break;		
+			break;
 		} else {
 			fscanf (foo, "%s", space);
 			numAtts++;
@@ -135,7 +135,7 @@ Schema :: Schema (char *fName, char *relName) {
 	for (int i = 0; i < numAtts; i++ ) {
 
 		// read in the attribute name
-		fscanf (foo, "%s", space);	
+		fscanf (foo, "%s", space);
 		myAtts[i].name = strdup (space);
 
 		// read in the attribute type

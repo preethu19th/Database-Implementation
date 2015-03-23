@@ -18,7 +18,7 @@ class RelationalOp {
 	// has run to completion
 	virtual void WaitUntilDone () = 0;
 	// tells how much internal memory the operation can use
-	virtual void Use_n_Pages (int n) = 0; 
+	virtual void Use_n_Pages (int n) = 0;
 
 	// run function for thread
 	virtual void Run () = 0;

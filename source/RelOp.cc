@@ -121,7 +121,7 @@ inline void Join :: SetJoinOpVals (Record *left, Record *right)
 	leftAtts = left->GetNumAtts ();
 	rightAtts = right->GetNumAtts ();
 
-	numAttsToKeep = leftAtts + rightAtts; 
+	numAttsToKeep = leftAtts + rightAtts;
 	attsToKeep = new int[numAttsToKeep];
 	for (int i = 0; i <  leftAtts; i++) {
 		attsToKeep[i] = i;
