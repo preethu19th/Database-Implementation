@@ -339,7 +339,69 @@ G: same as T but do it over each group identified by ordermaker
 D: stuff only distinct records into the out_pipe discarding duplicates
 W: write out records from in_pipe to a file using out_schema
 */
-	cout << " TBA\n";
+	cout << " query7 \n";
+	char *pred_s = "(s_acctbal > 2500.0)";
+	init_SF_s (pred_s, 100);
+
+	char *pred_ps = "(ps_suppkey = ps_suppkey)";
+	init_SF_ps (pred_ps, 100);
+
+	char *pred_p = "(p_partkey = p_partkey)";
+	init_SF_p (pred_p, 100);
+
+	Join J1;
+		// left _p
+		// right _ps
+		Pipe _p_ps (pipesz);
+		CNF cnf_p_ps;
+		Record lit_p_ps;
+		get_cnf ("(p_partkey = ps_partkey)", p->schema(), ps->schema(), cnf_p_ps, lit_p_ps);
+	J1.Use_n_Pages(20);
+
+	int outAtts = pAtts + psAtts;
+	Attribute ps_suppkey =  {"ps_suppkey", Int};
+	Attribute ps_supplycost = {"ps_supplycost", Double};
+	Attribute joinatt[] = {IA,SA,SA,SA,SA,IA,SA,DA,SA, IA,ps_suppkey,IA,DA,SA};
+	Schema join_sch ("join_sch", outAtts, joinatt);
+
+	Join J2;
+		// left _s
+		// right _p_ps
+		Pipe _s_p_ps (pipesz);
+		CNF cnf_s_p_ps;
+		Record lit_s_p_ps;
+		get_cnf ("(s_suppkey = ps_suppkey)", s->schema(), &join_sch, cnf_s_p_ps, lit_s_p_ps);
+	J2.Use_n_Pages(20);
+
+	int outAtts2 = sAtts + outAtts;
+	Attribute joinatt2[] = {IA,SA,SA,IA,SA,DA,SA, IA,SA,SA,SA,SA,IA,SA,DA,SA, IA,IA,IA,ps_supplycost,SA};
+	Schema join_sch2 ("join_sch2", outAtts2, joinatt2);
+
+	Sum T;
+		// _s (input pipe)
+		Pipe _out (1);
+		Function func;
+			char *str_sum = "(ps_supplycost)";
+			get_cnf (str_sum, &join_sch2, func);
+			func.Print ();
+
+	SF_s.Run (dbf_s, _s, cnf_s, lit_s); // 10k recs qualified
+	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps); // 161 recs qualified
+	SF_p.Run (dbf_p, _p, cnf_p, lit_p);
+	J1.Run (_p, _ps, _p_ps, cnf_p_ps, lit_p_ps);
+	J2.Run (_s, _p_ps, _s_p_ps, cnf_s_p_ps, lit_s_p_ps);
+	T.Run (_s_p_ps, _out, func);
+
+	SF_s.WaitUntilDone ();
+	SF_ps.WaitUntilDone ();
+	SF_p.WaitUntilDone ();
+	J1.WaitUntilDone ();
+	J2.WaitUntilDone ();
+	T.WaitUntilDone ();
+
+	Schema sum_sch ("sum_sch", 1, &DA);
+	int cnt = clear_pipe (_out, &sum_sch, true);
+	cout << " query7 returned sum " << cnt << " (expected 274251601.96 )\n";
 }
 
 void q8 () { 
