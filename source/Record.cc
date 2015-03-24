@@ -543,7 +543,6 @@ void Record :: Print (Schema *mySchema, FILE *outF)
 			char *myString = (char *) &(bits[pointer]);
 			fprintf (outF, "%s", myString);
 		}
-
 		fprintf (outF, "]");
 
 		// print out a comma as needed to make things pretty

@@ -220,29 +220,28 @@ void q5 () {
 
 	char *pred_ps = "(ps_supplycost < 100.11)";
 	init_SF_ps (pred_ps, 100);
-
 	Project P_ps;
-		Pipe __ps (pipesz);
+		Pipe proj_ps (pipesz);
 		int keepMe[] = {1};
 		int numAttsIn = psAtts;
 		int numAttsOut = 1;
 	P_ps.Use_n_Pages (buffsz);
 
 	DuplicateRemoval D;
-		// inpipe = __ps
-		Pipe ___ps (pipesz);
+		// inpipe = proj_ps
+		Pipe dupr_ps (pipesz);
 		Schema __ps_sch ("__ps", 1, &IA);
 	D.Use_n_Pages (20);
 
 	WriteOut W;
-		// inpipe = ___ps
+		// inpipe = dupr_ps
 		char *fwpath = "ps.w.tmp";
 		FILE *writefile = fopen (fwpath, "w");
 
 	SF_ps.Run (dbf_ps, _ps, cnf_ps, lit_ps);
-	P_ps.Run (_ps, __ps, keepMe, numAttsIn, numAttsOut);
-	D.Run (__ps, ___ps,__ps_sch);
-	W.Run (___ps, writefile, __ps_sch);
+	P_ps.Run (_ps, proj_ps, keepMe, numAttsIn, numAttsOut);
+	D.Run (proj_ps, dupr_ps,__ps_sch);
+	W.Run (dupr_ps, writefile, __ps_sch);
 
 	SF_ps.WaitUntilDone ();
 	P_ps.WaitUntilDone ();
@@ -422,7 +421,35 @@ possible plan:
 	On __l:
 		W (__l)
 */
-	cout << " TBA\n";
+	cout << " query8 \n";
+	char *pred_li = "(l_returnflag = 'R') AND (l_discount < 0.04 OR l_shipmode = 'MAIL')";
+	init_SF_li (pred_li, 100);
+
+	Project P;
+		Pipe _out (pipesz);
+		int keepMe[] = {0,1,2};
+		int numAttsIn = liAtts;
+		int numAttsOut = 3;
+	P.Use_n_Pages (buffsz);
+
+	Attribute projatt[] = {IA,IA,IA};
+	Schema proj_sch ("join_sch", numAttsOut, projatt);
+
+	WriteOut W;
+		// inpipe = _li
+		char *fwpath = "ps.w.tmp";
+		FILE *writefile = fopen (fwpath, "w");
+
+
+	SF_li.Run (dbf_li, _li, cnf_li, lit_li);
+	P.Run (_li, _out, keepMe, numAttsIn, numAttsOut);
+	W.Run (_out, writefile, proj_sch);
+
+	SF_li.WaitUntilDone ();
+	P.WaitUntilDone ();
+	W.WaitUntilDone ();
+
+	cout << " query8 finished..output written to file " << fwpath << "(expecting 671392 records)\n";
 }
 
 int main (int argc, char *argv[]) {

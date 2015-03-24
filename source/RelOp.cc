@@ -178,7 +178,7 @@ inline void Join :: CrossProduct (char *lFileName, char *rFileName)
 }
 
 inline void Join :: RemoveEquRecs (vector<Record> *v, Record &r1, Pipe &p,
-								int &ret, OrderMaker &o)
+		int &ret, OrderMaker &o)
 {
 	Record r2;
 	bool add = v != NULL;
@@ -258,38 +258,38 @@ void Join :: Run (Pipe &iL, Pipe &iR, Pipe &o, CNF &s, Record &l)
 
 void DuplicateRemoval :: Run ()
 {
-	Record rec[2];
-	Record *curr = NULL, *prev = NULL;
-	ComparisonEngine ce;
-	OrderMaker so(mySchema);
+	Record rec[2], *curr = NULL, *prev = NULL;
 	int i = 0;
 	Pipe bqOutPipe(100);
-	BigQ bq(*inPipe, bqOutPipe, so, runLength);
 
-	while (bqOutPipe.Remove (&rec[i%2])) {
+	BigQ bq(*inPipe, bqOutPipe, *so, runLength);
+	while (bqOutPipe.Remove (rec + i)) {
 		prev = curr;
-		curr = &rec[i%2];
+		curr = rec + i;
 
 		if (prev && curr) {
-			if (ce.Compare (prev, curr, &so) != 0)
+			if (ce.Compare (prev, curr, so) != 0) {
 				outPipe->Insert(prev);
+			}
 		}
 
-		i++;
+		i = ( (i+1) % 2);
 	}
 
 	/* Write the last set of records */
-	if (ce.Compare (prev, curr, &so) == 0)
-		outPipe->Insert(prev);
+	if (prev) outPipe->Insert(prev);
 
+	if(!so) delete so;
 	outPipe->ShutDown ();
 }
 
 void DuplicateRemoval :: Run (Pipe &i, Pipe &o, Schema &m)
 {
+	so = NULL;
 	inPipe = &i;
 	outPipe = &o;
 	mySchema = &m;
+	so = new OrderMaker(mySchema);
 
 	if (pthread_create (&thread, NULL, RelWorkerThread, (void*) this)) {
 		perror ("Error! Failed to create DuplicateRemoval thread!\n");
@@ -337,20 +337,37 @@ void Sum :: Run (Pipe &i, Pipe &o, Function &c)
 
 }
 
+inline void GroupBy :: PushGrpOp(Record *prev, long double &sumDbl)
+{
+	char colVal[128];
+	char *colName = "sum\0";
+	char *tblName = "dummy\0";
+	Attribute attr = {colName, retVal};
+	Schema sch (tblName, 1, &attr);
+	if (retVal == Int) {
+		sprintf (colVal, "%Ld|\0", sumDbl);
+	} else {
+		sprintf (colVal, "%Lf|\0", sumDbl);
+	}
+
+	Record *singleRec = new Record ();
+	singleRec->ComposeRecord (&sch, colVal);
+	Record buffer;
+	buffer.MergeRecords (singleRec, prev, 1, numAtts,
+			attsToKeep, numAtts + 1, 1);
+	outPipe->Insert (&buffer);
+	sumDbl = 0;
+}
+
 void GroupBy :: Run ()
 {
-	Record rec[2];
-	Record *prev = NULL, *curr = NULL;
+	Record rec[2], *prev = NULL, *curr = NULL;
 	long double sumDbl = 0;
 	Pipe sortedPipe (100);
 	BigQ sortedQ (*inPipe, sortedPipe, *groupAtts, runLength);
-	Type retVal = Int;
-	ComparisonEngine ceng;
-	char *colName = "sum\0";
-	char *tblName = "dummy\0";
-	char colVal[128];
-	int numAtts, i = 0;
-	int *attsToKeep = groupAtts->GetGroupCols (numAtts, 1);
+	retVal = Int;
+	int i = 0;
+	attsToKeep = groupAtts->GetGroupCols (numAtts, 1);
 	attsToKeep[0] = 0;
 
 	while (sortedPipe.Remove (rec + i) ) {
@@ -359,21 +376,7 @@ void GroupBy :: Run ()
 		curr = rec + i;
 		if (!prev) prev = curr;
 		if (ceng.Compare (curr, prev, groupAtts) != 0) {
-			Attribute attr = {colName, retVal};
-			Schema sch (tblName, 1, &attr);
-			if (retVal == Int) {
-				sprintf (colVal, "%Ld|\0", sumDbl);
-			} else {
-				sprintf (colVal, "%Lf|\0", sumDbl);
-			}
-
-			Record *singleRec = new Record ();
-			singleRec->ComposeRecord (&sch, colVal);
-			Record buffer;
-			buffer.MergeRecords (singleRec, prev, 1, numAtts,
-								attsToKeep, numAtts + 1, 1);
-			outPipe->Insert (&buffer);
-			sumDbl = 0;
+			PushGrpOp(prev, sumDbl);
 		}
 
 		retVal = computeMe->Apply (*curr, tempInt, tempDbl);
@@ -382,25 +385,7 @@ void GroupBy :: Run ()
 		i = ( (i+1) % 2);
 	}
 
-
-	if(prev) {
-		Attribute attr = {colName, retVal};
-		Schema sch (tblName, 1, &attr);
-		if (retVal == Int) {
-			sprintf (colVal, "%Ld|\0", sumDbl);
-		} else {
-			sprintf (colVal, "%Lf|\0", sumDbl);
-		}
-
-		Record *singleRec = new Record ();
-		singleRec->ComposeRecord (&sch, colVal);
-		Record buffer;
-		buffer.MergeRecords (singleRec, prev, 1, numAtts,
-				attsToKeep, numAtts + 1, 1);
-		outPipe->Insert (&buffer);
-		sumDbl = 0;
-	}
-
+	if(prev) PushGrpOp(prev, sumDbl);
 	delete attsToKeep;
 	outPipe->ShutDown ();
 }
@@ -425,7 +410,6 @@ void WriteOut :: Run ()
 	while (inPipe->Remove (&buffer)) {
 		buffer.Print(mySchema, outFile);
 	}
-
 }
 
 

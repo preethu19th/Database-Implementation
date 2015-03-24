@@ -87,9 +87,11 @@ class Join : public RelationalOp {
 	void Run ();
 };
 class DuplicateRemoval : public RelationalOp {
+	ComparisonEngine ce;
 	Pipe *inPipe;
 	Pipe *outPipe;
 	Schema *mySchema;
+	OrderMaker *so;
 	public:
 	void Run (Pipe &, Pipe &, Schema &);
 	void WaitUntilDone ();
@@ -112,6 +114,10 @@ class GroupBy : public RelationalOp {
 	Pipe *outPipe;
 	OrderMaker *groupAtts;
 	Function *computeMe;
+	Type retVal;
+	int numAtts;
+	int *attsToKeep;
+	inline void PushGrpOp(Record *, long double &);
 	public:
 	void Run (Pipe &, Pipe &, OrderMaker &, Function &);
 	void WaitUntilDone ();
