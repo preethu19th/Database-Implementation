@@ -52,6 +52,9 @@ makebin:
 
 all: a3-test a1-test a2-2test a2-test
 
+a4-1test: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o  test.o GenericDBFile.o HeapDBFile.o  SortedDBFile.o a4-1test.o Statistics.o
+	$(CC) -o bin/a4-1test bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/Pipe.o bin/BigQ.o bin/RelOp.o bin/Function.o bin/y.tab.o bin/yyfunc.tab.o bin/lex.yyfunc.o bin/a4-1test.o bin/GenericDBFile.o bin/HeapDBFile.o bin/SortedDBFile.o bin/lex.yy.o bin/test.o bin/Statistics.o -lfl -lpthread
+
 a3-test: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o DBFile.o Pipe.o BigQ.o RelOp.o Function.o y.tab.o yyfunc.tab.o lex.yy.o lex.yyfunc.o  test.o GenericDBFile.o HeapDBFile.o  SortedDBFile.o a3-test.o
 	$(CC) -o bin/a3-test bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/DBFile.o bin/Pipe.o bin/BigQ.o bin/RelOp.o bin/Function.o bin/y.tab.o bin/yyfunc.tab.o bin/lex.yyfunc.o bin/a3-test.o bin/GenericDBFile.o bin/HeapDBFile.o bin/SortedDBFile.o bin/lex.yy.o bin/test.o -lfl -lpthread
 
@@ -66,7 +69,10 @@ a1-test: makebin Record.o GenericDBFile.o HeapDBFile.o Comparison.o ComparisonEn
 	
 main: makebin Record.o Comparison.o ComparisonEngine.o Schema.o File.o y.tab.o lex.yy.o main.o
 	$(CC) -o  bin/main bin/Record.o bin/Comparison.o bin/ComparisonEngine.o bin/Schema.o bin/File.o bin/y.tab.o bin/lex.yy.o bin/main.o -lfl
-	
+
+a4-1test.o: source/a4-1test.cc
+	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/a4-1test.cc -o bin/a4-1test.o
+
 a3-test.o: source/a3-test.cc
 	$(CC) $(CPPFLAGS) $(CXXFLAGS) -c source/a3-test.cc -o bin/a3-test.o
 
@@ -84,6 +90,9 @@ a2-2test.a: source/a2-2test.cc
 
 main.o: source/main.cc
 	$(CC) -g -c source/main.cc -o bin/main.o
+
+Statistics.o: source/Statistics.cc
+	$(CC) -g -c source/Statistics.cc -o bin/Statistics.o
 	
 Comparison.o: source/Comparison.cc
 	$(CC) -g -c source/Comparison.cc -o bin/Comparison.o
