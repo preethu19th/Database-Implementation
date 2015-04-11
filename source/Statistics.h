@@ -23,7 +23,6 @@ public:
 	string relName;
 	RelInfo(string S, tcnt T);
 	RelInfo(string, RelInfo &);
-	RelInfo(RelInfo &);
 	RelInfo();
 	~RelInfo();
 	void AddAttr(string aName, tcnt count);

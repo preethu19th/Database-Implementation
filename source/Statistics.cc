@@ -7,28 +7,24 @@ RelInfo::RelInfo(string S, tcnt T)
 	numTuples = T;
 }
 
-RelInfo::RelInfo(string S, RelInfo &Ri)
+RelInfo::RelInfo( string S, RelInfo &Ri)
 {
 	Str_to_ULL::iterator it;
-	relName = S;
+	if ( S.empty() ) relName = Ri.relName;
+	else  relName = S;
 	numTuples = Ri.numTuples;
 	for ( it = Ri.attrInfo.begin(); it != Ri.attrInfo.end(); it++ ) {
-		string attrName( relName );
-		attrName.append ( "." );
-		attrName.append ( (*it).first );
-		attrInfo[attrName] = (*it).second;
+		if(S.empty()) {
+			attrInfo[(*it).first] = (*it).second;
+		}	else {
+			string attrName( S );
+			attrName.append ( "." );
+			attrName.append ( (*it).first );
+			attrInfo[attrName] = (*it).second;
+		}
 	}
 }
 
-RelInfo::RelInfo ( RelInfo &Ri )
-{
-	Str_to_ULL::iterator it;
-	relName = Ri.relName;
-	numTuples = Ri.numTuples;
-	for ( it = Ri.attrInfo.begin(); it != Ri.attrInfo.end(); it++ ) {
-		attrInfo[(*it).first] = (*it).second;
-	}
-}
 
 RelInfo::RelInfo()
 {
@@ -79,7 +75,7 @@ Statistics::Statistics(Statistics &copyMe)
 {
 	Str_to_Ri::iterator it;
 	for ( it = copyMe.RelMap.begin(); it != copyMe.RelMap.end(); it++ ) {
-		RelInfo Ri ( (*it).second );
+		RelInfo Ri ( "", (*it).second );
 		RelMap[(*it).first] = Ri;
 		JoinMap[(*it).first] = copyMe.JoinMap[(*it).first];
 	}
