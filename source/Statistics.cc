@@ -13,6 +13,19 @@ RelInfo::RelInfo(string S, RelInfo &Ri)
 	relName = S;
 	numTuples = Ri.numTuples;
 	for ( it = Ri.attrInfo.begin(); it != Ri.attrInfo.end(); it++ ) {
+		string attrName( relName );
+		attrName.append ( "." );
+		attrName.append ( (*it).first );
+		attrInfo[attrName] = (*it).second;
+	}
+}
+
+RelInfo::RelInfo ( RelInfo &Ri )
+{
+	Str_to_ULL::iterator it;
+	relName = Ri.relName;
+	numTuples = Ri.numTuples;
+	for ( it = Ri.attrInfo.begin(); it != Ri.attrInfo.end(); it++ ) {
 		attrInfo[(*it).first] = (*it).second;
 	}
 }
@@ -66,7 +79,7 @@ Statistics::Statistics(Statistics &copyMe)
 {
 	Str_to_Ri::iterator it;
 	for ( it = copyMe.RelMap.begin(); it != copyMe.RelMap.end(); it++ ) {
-		RelInfo Ri ( (*it).first, (*it).second );
+		RelInfo Ri ( (*it).second );
 		RelMap[(*it).first] = Ri;
 		JoinMap[(*it).first] = copyMe.JoinMap[(*it).first];
 	}
@@ -150,5 +163,4 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numT
 double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 				int numToJoin, bool apply)
 {
-
 }

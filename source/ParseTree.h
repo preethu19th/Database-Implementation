@@ -5,14 +5,14 @@
 #define LESS_THAN 1
 #define GREATER_THAN 2
 #define EQUALS 3
+#define LESS_EQ 4
+#define GREATER_EQ 5
 
 // these are the types of operands that can appear in a CNF expression
 #define DOUBLE 1
 #define INT 2
 #define STRING 3
 #define NAME 4
-#define LESS_EQ 4
-#define GREATER_EQ 5
 
 struct Operand {
 
