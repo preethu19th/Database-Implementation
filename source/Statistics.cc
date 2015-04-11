@@ -1,4 +1,5 @@
 #include "Statistics.h"
+#include <iostream>
 
 RelInfo::RelInfo(string S, tcnt T)
 {
@@ -32,7 +33,7 @@ void RelInfo::AddAttr(string aName, tcnt count)
 ostream& operator<<(ostream &os, const RelInfo &Ri)
 {
 	Str_to_ULL::const_iterator it;
-	os << relName << endl;
+	os << Ri.relName << endl;
 	os << Ri.numTuples << endl;
 	os << Ri.attrInfo.size() << endl;
 	for ( it = Ri.attrInfo.begin(); it != Ri.attrInfo.end(); it++ ) {
@@ -87,7 +88,7 @@ void Statistics::AddRel(char *relName, int numTuples)
 
 void Statistics::Print()
 {
-	Str_to_Ri::iterator it;
+	Str_to_Ri::const_iterator it;
 	for ( it = RelMap.begin(); it != RelMap.end(); it++ ) {
 		cout << (*it).second;
 	}
@@ -116,7 +117,7 @@ void Statistics::Read(char *fromWhere)
 	unsigned counts;
 	statFile >> counts;
 	for (tcnt i = 0; i < counts ; i++ ) {
-		RelationInformation Ri;
+		RelInfo Ri;
 		statFile >> Ri;
 		RelMap[Ri.relName]= Ri;
 	}

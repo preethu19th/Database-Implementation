@@ -18,9 +18,9 @@ class RelInfo
 {
 private:
 	tcnt numTuples;
-	string relName;
 	Str_to_ULL attrInfo;
 public:
+	string relName;
 	RelInfo(string S, tcnt T);
 	RelInfo(string, RelInfo &);
 	RelInfo();
