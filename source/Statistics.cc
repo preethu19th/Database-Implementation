@@ -7,7 +7,7 @@ RelInfo::RelInfo(string S, tcnt T)
 	numTuples = T;
 }
 
-RelInfo::RelInfo( string S, RelInfo &Ri)
+RelInfo::RelInfo( string S, RelInfo &Ri, Statistics *St)
 {
 	Str_to_ULL::iterator it;
 	if ( S.empty() ) relName = Ri.relName;
@@ -16,11 +16,13 @@ RelInfo::RelInfo( string S, RelInfo &Ri)
 	for ( it = Ri.attrInfo.begin(); it != Ri.attrInfo.end(); it++ ) {
 		if(S.empty()) {
 			attrInfo[(*it).first] = (*it).second;
+			St->AttRelMap[(*it).first] = relName;
 		}	else {
 			string attrName( S );
 			attrName.append ( "." );
 			attrName.append ( (*it).first );
 			attrInfo[attrName] = (*it).second;
+			St->AttRelMap[attrName] = relName;
 		}
 	}
 }
@@ -75,7 +77,7 @@ Statistics::Statistics(Statistics &copyMe)
 {
 	Str_to_Ri::iterator it;
 	for ( it = copyMe.RelMap.begin(); it != copyMe.RelMap.end(); it++ ) {
-		RelInfo Ri ( "", (*it).second );
+		RelInfo Ri ( (*it).first, (*it).second, this);
 		RelMap[(*it).first] = Ri;
 		JoinMap[(*it).first] = copyMe.JoinMap[(*it).first];
 	}
@@ -108,12 +110,13 @@ void Statistics::AddAtt(char *relName, char *attName, int numDistincts)
 	string rName(relName);
 	string aName(attName);
 	RelMap[rName].AddAttr(aName, (tcnt) numDistincts);
+	AttRelMap[aName] = rName;
 }
 
 void Statistics::CopyRel(char *oldName, char *newName)
 {
 	string son(oldName), snn(newName);
-	RelInfo Ri(newName, RelMap[son]);
+	RelInfo Ri(newName, RelMap[son], this);
 	RelMap[snn] = Ri;
 }
 
@@ -156,7 +159,106 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numT
 	return Estimate ( parseTree, relNames, numToJoin, false);
 }
 
+tcnt Statistics::ReadAtt(string aName)
+{
+	if (AttRelMap.count(aName) == 0)
+		return 0;
+
+	string rName = AttRelMap[aName];
+	return RelMap[rName].attrInfo[aName];
+}
+
+void Statistics::WriteAtt(string aName, double ratio)
+{
+	string rName = AttRelMap[aName];
+	RelMap[rName].attrInfo[aName] *= ratio;
+	//cout<<endl;
+	//cout << RelMap[rName].attrInfo[aName] << " ***************** " << count<<endl;
+}
+
 double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 				int numToJoin, bool apply)
 {
+	bool is_join = false;
+	tcnt estimate = 0;
+	double ratio = 1;
+	cout << "\n------------------------------------------\n";
+	struct AndList *pAnd = parseTree;
+	Str_to_Dbl apply_ratio;
+
+	while (pAnd !=NULL)
+	{
+		struct OrList *pOr = pAnd->left;
+		double lratio = 0;
+		while (pOr !=NULL) {
+			double llratio = 1;
+			struct ComparisonOp *pCom = pOr->left;
+			if(pCom!=NULL)
+			{
+				if (pCom->left != NULL)
+					cout << pCom->left->value << "[" << pCom->left->code <<"] ";
+				string lname(pCom->left->value);
+				string rname(pCom->right->value);
+				tcnt lval = ReadAtt(lname);
+
+				switch(pCom->code)
+				{
+					case 1:
+						//cout<<" < "; 
+						
+						break;
+					case 2:
+						//cout<<" > "; break;
+						break;
+					case 3:
+						cout<<" = ";
+						if (pCom->right->code == NAME) {
+							tcnt rval = ReadAtt(rname);
+							is_join = true;
+						} else {
+							llratio = llratio / lval;
+						}
+				}
+				if (pCom->right != NULL)
+					cout << pCom->right->value << "[" << pCom->right->code <<"] ";
+				if (apply_ratio.count(lname) == 0)
+					apply_ratio[lname] = llratio;
+				else
+					apply_ratio[lname] += llratio;
+
+				lratio += llratio;
+
+			}
+			if (pOr->rightOr)
+				cout<<" OR ";
+			pOr = pOr->rightOr;
+
+		}
+		if(pAnd->rightAnd)
+			cout<<" AND ";
+		ratio *= lratio;
+		pAnd = pAnd->rightAnd;
+	}
+
+	if (!is_join) {
+		vector <string> JoinTable;
+		for (int i = 0; i < numToJoin; i++) {
+			ratio *= RelMap[relNames[i]].numTuples;
+			JoinTable.push_back(relNames[i]);
+		} 
+		for (int i = 0; i < numToJoin; i++) {
+			JoinMap[relNames[i]] = JoinTable;
+			if (apply)
+				RelMap[relNames[i]].numTuples = ratio;
+		}
+	}
+
+	if (apply) {
+		Str_to_Dbl::iterator it;	
+		for (it = apply_ratio.begin(); it != apply_ratio.end(); it++ ) {
+			WriteAtt((*it).first, (*it).second);
+		}
+	}
+
+	return ratio;
 }

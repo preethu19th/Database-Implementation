@@ -12,17 +12,21 @@ class RelInfo;
 typedef unsigned long long tcnt;
 typedef tr1::unordered_map < string, tcnt > Str_to_ULL;
 typedef tr1::unordered_map < string, vector <string> > Str_to_Strs;
+typedef tr1::unordered_map < string, string > Str_to_Str;
+typedef tr1::unordered_map < string, double > Str_to_Dbl;
 typedef tr1::unordered_map < string, RelInfo > Str_to_Ri;
+class Statistics;
 
 class RelInfo
 {
 private:
 	tcnt numTuples;
 	Str_to_ULL attrInfo;
-public:
+	friend class Statistics;
 	string relName;
+public:
 	RelInfo(string S, tcnt T);
-	RelInfo(string, RelInfo &);
+	RelInfo(string, RelInfo &, Statistics *);
 	RelInfo();
 	~RelInfo();
 	void AddAttr(string aName, tcnt count);
@@ -35,6 +39,8 @@ class Statistics
 private:
 	Str_to_Ri RelMap;
 	Str_to_Strs JoinMap;
+	Str_to_Str AttRelMap;
+	friend class RelInfo;
 public:
 	Statistics();
 	Statistics(Statistics &copyMe);	 // Performs deep copy
@@ -47,6 +53,9 @@ public:
 
 	void Read(char *fromWhere);
 	void Write(char *fromWhere);
+
+	tcnt ReadAtt(string aName);
+	void WriteAtt(string aName, double ratio);
 
 	void  Apply(struct AndList *parseTree, char **relNames, int numToJoin);
 	double Estimate(struct AndList *parseTree, char **relNames, int numToJoin);
