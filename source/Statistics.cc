@@ -1,5 +1,6 @@
 #include "Statistics.h"
 #include <iostream>
+#include <stdlib.h>
 
 RelInfo::RelInfo(string S, tcnt T)
 {
@@ -38,6 +39,7 @@ RelInfo::~RelInfo()
 
 void RelInfo::AddAttr(string aName, tcnt count)
 {
+	if ( count == -1) count = numTuples;
 	attrInfo[aName] = count;
 }
 
@@ -128,10 +130,27 @@ void Statistics::Read(char *fromWhere)
 
 	unsigned counts;
 	statFile >> counts;
-	for (tcnt i = 0; i < counts ; i++ ) {
+	for (int i = 0; i < counts ; i++ ) {
 		RelInfo Ri;
 		statFile >> Ri;
-		RelMap[Ri.relName]= Ri;
+		RelMap[Ri.relName]= RelInfo("", Ri, this);
+	}
+
+	int numTable;
+	statFile >> numTable;
+	Str_to_Strs::iterator it;
+	for ( int i = 0; i < numTable ; i++ ) {
+		string tblName;
+		statFile >> tblName;
+		int j;
+		statFile >> j;
+		while ( j > 0) {
+			string joinedName;
+			
+			statFile >> joinedName;
+			JoinMap[tblName].push_back(joinedName);
+			j--;
+		}
 	}
 
 	statFile.close ();
@@ -144,6 +163,16 @@ void Statistics::Write(char *fromWhere)
 	Str_to_Ri::iterator it;
 	for (it = RelMap.begin(); it != RelMap.end(); it++ ) {
 		statFile << (*it).second << endl;
+	}
+
+	statFile << JoinMap.size() << endl;
+	Str_to_Strs::iterator it1;
+	for ( it1 = JoinMap.begin(); it1 != JoinMap.end(); it1++ ) {
+		statFile << (*it1).first << endl;
+		statFile << (*it1).second.size() <<endl;
+		for(int i = 0; i < (*it1).second.size() ; i++) {
+			statFile << (*it1).second[i] << endl;
+		}
 	}
 
 	statFile.close();
@@ -161,8 +190,10 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames, int numT
 
 tcnt Statistics::ReadAtt(string aName)
 {
-	if (AttRelMap.count(aName) == 0)
-		return 0;
+	if (AttRelMap.count(aName) == 0)	{
+		cout << "Missing attribute "<< aName << " in Statistics\n";
+		exit ( 1 );
+	}
 
 	string rName = AttRelMap[aName];
 	return RelMap[rName].attrInfo[aName];
@@ -179,77 +210,95 @@ void Statistics::WriteAtt(string aName, double ratio)
 double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 				int numToJoin, bool apply)
 {
-	bool is_join = false;
+	bool is_join = false, already_joined = false, sameOrCols = true;
 	double ratio = 1;
 	struct AndList *pAnd = parseTree;
 	Str_to_Dbl apply_ratio;
 	vector <string> JoinTable;
 
-	while (pAnd !=NULL)
-	{
+	while (pAnd !=NULL) {
 		struct OrList *pOr = pAnd->left;
-		double lratio = 0;
+		vector<double> lratio;
+		string prevColName("");
 		while (pOr !=NULL) {
 			double llratio = 1;
 			struct ComparisonOp *pCom = pOr->left;
-			if(pCom!=NULL)
-			{
-				string lname(pCom->left->value);
-				string rname(pCom->right->value);
-				tcnt lval = ReadAtt(lname);
-				if (lval == 0) {
-					pOr = pOr->rightOr;
-					continue;
-				}
+			string lname(pCom->left->value);
+			string rname(pCom->right->value);
+			tcnt lval = ReadAtt(lname);
+			if ( prevColName.empty () ) prevColName = lname;
+			if ( sameOrCols && prevColName != lname ) sameOrCols = false;
 
-				switch(pCom->code)
-				{
-					case 1:
-						
-						break;
-					case 2:
-						break;
-					case 3:
-						if (pCom->right->code == NAME) {
-							tcnt rval = ReadAtt(rname);
-							string lrName = AttRelMap[lname];
-							string rrName = AttRelMap[rname];
+			switch(pCom->code) {
+				case 1: case 2:
+					llratio = 1.0l/3;
+					if (apply_ratio.count(lname) == 0)
+						apply_ratio[lname] = llratio;
+					else
+						apply_ratio[lname] += llratio;
 
-							double rr = ((double)RelMap[lrName].numTuples/lval) *
-								((double)RelMap[rrName].numTuples/rval);
-							llratio = rr * (lval > rval ? rval : lval);
-							JoinTable.push_back(lrName);
-							JoinTable.push_back(rrName);
-						
-							if (apply) {
-								JoinMap[lrName].push_back(rrName);
-								JoinMap[rrName].push_back(lrName);
-							}
-							is_join = true;
-						} else {
-							llratio = llratio / lval;
-							if (apply_ratio.count(lname) == 0)
-								apply_ratio[lname] = llratio;
-							else
-								apply_ratio[lname] += llratio;
 
+					break;
+				case 3:
+					if (pCom->right->code == NAME) {
+						tcnt rval = ReadAtt(rname);
+						string lrName = AttRelMap[lname];
+						string rrName = AttRelMap[rname];
+
+						double rr = ((double)RelMap[lrName].numTuples/lval) *
+							((double)RelMap[rrName].numTuples/rval);
+						llratio = rr * (lval > rval ? rval : lval);
+						JoinTable.push_back(lrName);
+						JoinTable.push_back(rrName);
+
+						if (apply) {
+							JoinMap[lrName].push_back(rrName);
+							JoinMap[rrName].push_back(lrName);
 						}
-				}
-				lratio += llratio;
 
+						is_join = true;
+					} else {
+						llratio = llratio / lval;
+						if (apply_ratio.count(lname) == 0)
+							apply_ratio[lname] = llratio;
+						else
+							apply_ratio[lname] += llratio;
+
+					}
 			}
-			pOr = pOr->rightOr;
+			lratio.push_back ( llratio );
 
+			pOr = pOr->rightOr;
 		}
-		ratio *= lratio;
+
+		double oratio;
+
+		if(sameOrCols) {
+			oratio = 0;
+			for(int i =0;i<lratio.size();i++) {
+				oratio += lratio[i];
+			}
+		}	else {
+			oratio = 1;
+			for(int i =0;i<lratio.size();i++) {
+				oratio *= (1-lratio[i]);
+			}
+			oratio  = 1 - oratio;
+		}
+
+		ratio *= oratio;
 		pAnd = pAnd->rightAnd;
 	}
 
 	if (!is_join) {
-		for (int i = 0; i < numToJoin; i++) {
-			ratio *= RelMap[relNames[i]].numTuples;
-			JoinTable.push_back(relNames[i]);
-		} 
+		if(JoinMap[relNames[0]].size() == numToJoin){
+			ratio *= RelMap[relNames[0]].numTuples;
+		} else {
+			for (int i = 0; i < numToJoin; i++) {			
+				ratio *= RelMap[relNames[i]].numTuples;
+				JoinTable.push_back(relNames[i]);
+			} 
+		}
 	}
 
 
@@ -268,11 +317,13 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 
 		for(vector<string>::iterator sit = JoinTable.begin(); sit != JoinTable.end(); sit++) {
 			RelMap[*sit].numTuples = ratio;
+			for(int i = 0; i < JoinMap[*sit].size() ; i++) {
+				RelMap[JoinMap[*sit][i]].numTuples = ratio;
+			}
 		}
 
 
 	}
 
-	cout << "\nestimate::: " << ratio << endl;
 	return ratio;
 }

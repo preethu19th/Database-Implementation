@@ -85,8 +85,8 @@ char *fileName = "Statistics.txt";
 
 void q0 (){
 
-	Statistics s;
         char *relName[] = {"supplier","partsupp"};
+	Statistics s;
 
 	
 	s.AddRel(relName[0],10000);
@@ -198,7 +198,7 @@ void q3 (){
 	s.Read(fileName);
 	
 	s.AddRel(relName[0],10000);
-	s.AddAtt(relName[0], "s_nationey",25);
+	s.AddAtt(relName[0], "s_nationkey",25);
 
 	s.AddRel(relName[1],150000);
 	s.AddAtt(relName[1], "c_custkey",150000);
@@ -315,6 +315,7 @@ void q5 (){
 	s.AddRel(relName[1],1500000);
 	s.AddAtt(relName[1], "o_orderkey",1500000);
 	s.AddAtt(relName[1], "o_custkey",150000);
+	s.AddAtt(relName[1], "o_orderdate",1500000);
 	
 	s.AddRel(relName[2],6001215);
 	s.AddAtt(relName[2], "l_orderkey",1500000);
@@ -397,6 +398,7 @@ void q7(){
 	
 	s.AddRel(relName[1],6001215);
 	s.AddAtt(relName[1], "l_orderkey",1500000);
+	s.AddAtt(relName[1], "l_receiptdate",-1);
 	
 
 	char *cnf = "(l_receiptdate >'1995-02-01' ) AND (l_orderkey = o_orderkey)";
@@ -498,6 +500,7 @@ void q10 (){
 	s.AddRel(relName[1],1500000);
 	s.AddAtt(relName[1], "o_orderkey",1500000);
 	s.AddAtt(relName[1], "o_custkey",150000);
+	s.AddAtt(relName[1], "o_orderdate",-1);
 	
 	s.AddRel(relName[2],6001215);
 	s.AddAtt(relName[2], "l_orderkey",1500000);
@@ -511,12 +514,14 @@ void q10 (){
 	s.Apply(final, relName, 2);
 
 	cnf = " (l_orderkey = o_orderkey) ";
-	yy_scan_string(cnf);                                                                               	yyparse();
+	yy_scan_string(cnf);
+	yyparse();
 
 	s.Apply(final, relName, 3);  
 	
 	cnf = "(c_nationkey = n_nationkey) ";
-	yy_scan_string(cnf);                                                                               	yyparse();	
+	yy_scan_string(cnf);
+	yyparse();	
 	
 	double result = s.Estimate(final, relName, 4);
 	if(fabs(result-2000405)>0.1)
@@ -538,7 +543,7 @@ void q11 (){
 	
 	s.AddRel(relName[0],200000);
 	s.AddAtt(relName[0], "p_partkey",200000);
-	s.AddAtt(relName[0], "p_conatiner",40);
+	s.AddAtt(relName[0], "p_container",40);
 
 	s.AddRel(relName[1],6001215);
 	s.AddAtt(relName[1], "l_partkey",200000);
@@ -552,6 +557,7 @@ void q11 (){
 	
 	double result = s.Estimate(final, relName,2);
 
+	cout << result<<endl;
 	if(fabs(result-21432.9)>0.5)
 		cout<<"error in estimating Q11\n";
 	s.Apply(final, relName,2);
