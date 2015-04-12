@@ -190,6 +190,7 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 	{
 		struct OrList *pOr = pAnd->left;
 		double lratio = 0;
+		cout << "Ratio: " << ratio <<endl;
 		while (pOr !=NULL) {
 			double llratio = 1;
 			struct ComparisonOp *pCom = pOr->left;
@@ -200,6 +201,10 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 				string lname(pCom->left->value);
 				string rname(pCom->right->value);
 				tcnt lval = ReadAtt(lname);
+				if (lval == 0) {
+					pOr = pOr->rightOr;
+					continue;
+				}
 
 				switch(pCom->code)
 				{
@@ -214,7 +219,16 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 						cout<<" = ";
 						if (pCom->right->code == NAME) {
 							tcnt rval = ReadAtt(rname);
+							string lrName = AttRelMap[lname];
+							string rrName = AttRelMap[rname];
+							double rr = (RelMap[lrName].numTuples/lval)*(RelMap[rrName].numTuples/rval);
+							llratio = rr * (lval > rval ? rval : lval);
+							if (apply) {
+								JoinMap[lrName].push_back(rrName);
+								JoinMap[rrName].push_back(lrName);
+							}
 							is_join = true;
+							goto done;
 						} else {
 							llratio = llratio / lval;
 						}
@@ -225,7 +239,7 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 					apply_ratio[lname] = llratio;
 				else
 					apply_ratio[lname] += llratio;
-
+done:
 				lratio += llratio;
 
 			}
@@ -240,16 +254,14 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 		pAnd = pAnd->rightAnd;
 	}
 
+	vector <string> JoinTable;
 	if (!is_join) {
-		vector <string> JoinTable;
 		for (int i = 0; i < numToJoin; i++) {
 			ratio *= RelMap[relNames[i]].numTuples;
 			JoinTable.push_back(relNames[i]);
 		} 
 		for (int i = 0; i < numToJoin; i++) {
 			JoinMap[relNames[i]] = JoinTable;
-			if (apply)
-				RelMap[relNames[i]].numTuples = ratio;
 		}
 	}
 
@@ -258,6 +270,10 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 		for (it = apply_ratio.begin(); it != apply_ratio.end(); it++ ) {
 			WriteAtt((*it).first, (*it).second);
 		}
+		for (int i = 0; i < numToJoin; i++) {
+			RelMap[relNames[i]].numTuples = ratio;
+		}
+		
 	}
 
 	return ratio;
