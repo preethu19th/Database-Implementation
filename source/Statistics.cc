@@ -180,24 +180,20 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 				int numToJoin, bool apply)
 {
 	bool is_join = false;
-	tcnt estimate = 0;
 	double ratio = 1;
-	cout << "\n------------------------------------------\n";
 	struct AndList *pAnd = parseTree;
 	Str_to_Dbl apply_ratio;
+	vector <string> JoinTable;
 
 	while (pAnd !=NULL)
 	{
 		struct OrList *pOr = pAnd->left;
 		double lratio = 0;
-		cout << "Ratio: " << ratio <<endl;
 		while (pOr !=NULL) {
 			double llratio = 1;
 			struct ComparisonOp *pCom = pOr->left;
 			if(pCom!=NULL)
 			{
-				if (pCom->left != NULL)
-					cout << pCom->left->value << "[" << pCom->left->code <<"] ";
 				string lname(pCom->left->value);
 				string rname(pCom->right->value);
 				tcnt lval = ReadAtt(lname);
@@ -209,72 +205,74 @@ double Statistics::Estimate(struct AndList *parseTree, char **relNames,
 				switch(pCom->code)
 				{
 					case 1:
-						//cout<<" < "; 
 						
 						break;
 					case 2:
-						//cout<<" > "; break;
 						break;
 					case 3:
-						cout<<" = ";
 						if (pCom->right->code == NAME) {
 							tcnt rval = ReadAtt(rname);
 							string lrName = AttRelMap[lname];
 							string rrName = AttRelMap[rname];
-							double rr = (RelMap[lrName].numTuples/lval)*(RelMap[rrName].numTuples/rval);
+
+							double rr = ((double)RelMap[lrName].numTuples/lval) *
+								((double)RelMap[rrName].numTuples/rval);
 							llratio = rr * (lval > rval ? rval : lval);
+							JoinTable.push_back(lrName);
+							JoinTable.push_back(rrName);
+						
 							if (apply) {
 								JoinMap[lrName].push_back(rrName);
 								JoinMap[rrName].push_back(lrName);
 							}
 							is_join = true;
-							goto done;
 						} else {
 							llratio = llratio / lval;
+							if (apply_ratio.count(lname) == 0)
+								apply_ratio[lname] = llratio;
+							else
+								apply_ratio[lname] += llratio;
+
 						}
 				}
-				if (pCom->right != NULL)
-					cout << pCom->right->value << "[" << pCom->right->code <<"] ";
-				if (apply_ratio.count(lname) == 0)
-					apply_ratio[lname] = llratio;
-				else
-					apply_ratio[lname] += llratio;
-done:
 				lratio += llratio;
 
 			}
-			if (pOr->rightOr)
-				cout<<" OR ";
 			pOr = pOr->rightOr;
 
 		}
-		if(pAnd->rightAnd)
-			cout<<" AND ";
 		ratio *= lratio;
 		pAnd = pAnd->rightAnd;
 	}
 
-	vector <string> JoinTable;
 	if (!is_join) {
 		for (int i = 0; i < numToJoin; i++) {
 			ratio *= RelMap[relNames[i]].numTuples;
 			JoinTable.push_back(relNames[i]);
 		} 
-		for (int i = 0; i < numToJoin; i++) {
-			JoinMap[relNames[i]] = JoinTable;
-		}
 	}
+
 
 	if (apply) {
 		Str_to_Dbl::iterator it;	
 		for (it = apply_ratio.begin(); it != apply_ratio.end(); it++ ) {
 			WriteAtt((*it).first, (*it).second);
 		}
-		for (int i = 0; i < numToJoin; i++) {
-			RelMap[relNames[i]].numTuples = ratio;
+
+		if (!is_join) {
+			for (int i = 0; i < numToJoin; i++) {
+				RelMap[relNames[i]].numTuples = ratio;
+				JoinMap[relNames[i]] = JoinTable;
+			}
 		}
-		
+
+		for(vector<string>::iterator sit = JoinTable.begin(); sit != JoinTable.end(); sit++) {
+			RelMap[*sit].numTuples = ratio;
+		}
+
+
 	}
 
+	cout << "\nestimate::: " << ratio << endl;
 	return ratio;
 }
