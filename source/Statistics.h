@@ -5,16 +5,18 @@
 #include <vector>
 #include <fstream>
 #include <tr1/unordered_map>
+#include <tr1/unordered_set>
 
 using namespace std;
+using namespace std::tr1;
 
 class RelInfo;
 typedef unsigned long long tcnt;
-typedef tr1::unordered_map < string, tcnt > Str_to_ULL;
-typedef tr1::unordered_map < string, vector <string> > Str_to_Strs;
-typedef tr1::unordered_map < string, string > Str_to_Str;
-typedef tr1::unordered_map < string, double > Str_to_Dbl;
-typedef tr1::unordered_map < string, RelInfo > Str_to_Ri;
+typedef unordered_map < string, tcnt > Str_to_ULL;
+typedef unordered_map < string, vector <string> > Str_to_Strs;
+typedef unordered_map < string, string > Str_to_Str;
+typedef unordered_map < string, double > Str_to_Dbl;
+typedef unordered_map < string, RelInfo > Str_to_Ri;
 class Statistics;
 
 class RelInfo
@@ -41,6 +43,8 @@ private:
 	Str_to_Strs JoinMap;
 	Str_to_Str AttRelMap;
 	friend class RelInfo;
+
+	void CheckRelNameParseTree ( struct AndList *, char **, int );
 public:
 	Statistics();
 	Statistics(Statistics &copyMe);	 // Performs deep copy
