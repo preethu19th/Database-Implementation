@@ -1,9 +1,16 @@
 # COP-6726-Spring2015
+#Team:
+#Pradeep Kumar Goudagunta(UFID: 92457869)
+#Preethu Mathew Thomas(UFID: 48153137)
+
+
 [![Build Status](https://magnum.travis-ci.com/preethu19th/COP-6726-Spring2015.svg?token=kpbq8bmL5S9Txs63cGxQ&branch=master)](https://magnum.travis-ci.com/preethu19th/COP-6726-Spring2015)
 
-To build all tests use:
+To run the Project 4 part-I test source: a4-1test
+#Note please run a1-test for loading .bin and their meta files before running this test
 
-	make all
+	make a4-1test
+	./bin/a4-1test [0-11]
 
 
 To run the Project 3 test source: a3-test
